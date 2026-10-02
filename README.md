@@ -1,3 +1,8 @@
+> [!NOTE]
+> This repository is a fork of Project Ignis's ygopro-core used as the engine backend for YGO Gym.
+> 
+> Changes in this fork focus on features needed for research use, including state cloning and serialization. Upstream updates from Project Ignis are incorporated as the backend evolves.
+
 # YGOPro script engine.
 
 A bleeding-edge fork of [YGOPro core](https://github.com/Fluorohydride/ygopro) with updates to accommodate for new cards and features. It is incompatible with forks not derived from this one.
