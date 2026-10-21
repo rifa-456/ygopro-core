@@ -138,6 +138,39 @@ DuelPtr setup(Host& h,uint32_t spell_code) {
     require(OCG_CloneDuel(&invalid,raw,&c)==OCG_CLONE_NOT_AWAITING,"prestart clone accepted");
     OCG_StartDuel(raw);require(advance(*d)==OCG_DUEL_STATUS_AWAITING,"no initial decision");return d;
 }
+void check_seeded_clone(duel& source, Host& host) {
+    auto cb = callbacks(host);
+    OCG_Duel first = nullptr, second = nullptr;
+    const auto before = source.lua->heap.fingerprint();
+    require(OCG_CloneDuelWithSeed(nullptr, &source, &cb, 0) == OCG_CLONE_INVALID_ARGUMENT,
+            "seeded clone accepted null output");
+    require(OCG_CloneDuelWithSeed(&first, &source, &cb, 42) == OCG_CLONE_SUCCESS,
+            "seeded clone failed");
+    DuelPtr a(static_cast<duel*>(first));
+    require(OCG_CloneDuelWithSeed(&second, &source, &cb, 42) == OCG_CLONE_SUCCESS,
+            "second seeded clone failed");
+    DuelPtr b(static_cast<duel*>(second));
+    require(before == source.lua->heap.fingerprint(), "reseed mutated source VM");
+    for(int i = 0; i < 8; ++i) {
+        require(a->get_next_integer(1, 1000000) == b->get_next_integer(1, 1000000),
+                "seeded core streams diverged");
+        auto sample = [](duel& d) {
+            auto* L = d.lua->lua_state;
+            lua_getglobal(L, "math");
+            lua_getfield(L, -1, "random");
+            lua_pushinteger(L, 1);
+            lua_pushinteger(L, 1000000);
+            require(lua_pcall(L, 2, 1, 0) == LUA_OK, "math.random failed");
+            auto value = lua_tointeger(L, -1);
+            lua_pop(L, 2);
+            return value;
+        };
+        require(sample(*a) == sample(*b), "seeded Lua streams diverged");
+    }
+    auto exact = clone(*a, host);
+    require(a->get_next_integer(1, 1000000) == exact->get_next_integer(1, 1000000),
+            "exact clone did not preserve seeded core stream");
+}
 int main(int argc,char** argv) {
     try {
         require(argc==3,"usage: integration CardScripts fixture-directory");
@@ -145,6 +178,7 @@ int main(int argc,char** argv) {
         for(auto spell:{100000001u,55144522u,83764718u}) {
             Host h{argv[1],argv[2]};h.load_cards();Host other=h;
             auto original=setup(h,spell);
+            check_seeded_clone(*original, other);
             {
                 int unknown=0;auto* L=original->lua->lua_state;
                 lua_pushlightuserdata(L,&unknown);lua_setglobal(L,"clone_failure_probe");

@@ -80,6 +80,10 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_l
 	open_lib(LUA_STRLIBNAME, luaopen_string);
 	open_lib(LUA_TABLIBNAME, luaopen_table);
 	open_lib(LUA_MATHLIBNAME, luaopen_math);
+	lua_getglobal(lua_state, LUA_MATHLIBNAME);
+	lua_getfield(lua_state, -1, "randomseed");
+	lua_setfield(lua_state, LUA_REGISTRYINDEX, "ocgcore.clone.randomseed");
+	lua_pop(lua_state, 1);
 	if(options.enableUnsafeLibraries != 0)
 		open_lib(LUA_IOLIBNAME, luaopen_io);
 
