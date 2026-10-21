@@ -17,6 +17,7 @@
 #include "containers_fwd.h"
 
 namespace P {
+struct CloneTag {};
 inline constexpr auto restart = static_cast<uint16_t>(~(uint16_t()));
 template<bool NA>
 struct Process {
@@ -30,15 +31,18 @@ protected:
 	explicit Process(uint16_t step_) : step(step_) {}
 };
 struct Adjust : public Process<false> {
+	Adjust(CloneTag) : Process(0) {}
 	Adjust(uint16_t step_) : Process(step_) {}
 };
 struct Turn : public Process<false> {
+	Turn(CloneTag) : Process(0) {}
 	uint8_t turn_player;
 	bool has_performed_second_battle_phase;
 	Turn(uint16_t step_, uint8_t turn_player_) : Process(step_), turn_player(turn_player_),
 		has_performed_second_battle_phase(false) {}
 };
 struct RefreshLoc : public Process<false> {
+	RefreshLoc(CloneTag) : Process(0) {}
 	uint8_t dis_count;
 	uint32_t previously_disabled_locations;
 	effect* current_disable_field_effect;
@@ -47,17 +51,21 @@ struct RefreshLoc : public Process<false> {
 		current_disable_field_effect(nullptr) {}
 };
 struct Startup : public Process<false> {
+	Startup(CloneTag) : Process(0) {}
 	Startup(uint16_t step_) : Process(step_) {}
 };
 struct SelectBattleCmd : public Process<true> {
+	SelectBattleCmd(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	SelectBattleCmd(uint16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
 };
 struct SelectIdleCmd : public Process<true> {
+	SelectIdleCmd(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	SelectIdleCmd(uint16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
 };
 struct SelectEffectYesNo : public Process<true> {
+	SelectEffectYesNo(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	card* pcard;
 	uint64_t description;
@@ -65,16 +73,19 @@ struct SelectEffectYesNo : public Process<true> {
 		Process(step_), playerid(playerid_), pcard(pcard_), description(description_) {}
 };
 struct SelectYesNo : public Process<true> {
+	SelectYesNo(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	uint64_t description;
 	SelectYesNo(uint16_t step_, uint8_t playerid_, uint64_t description_) :
 		Process(step_), playerid(playerid_), description(description_) {}
 };
 struct SelectOption : public Process<true> {
+	SelectOption(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	SelectOption(uint16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
 };
 struct SelectCard : public Process<true> {
+	SelectCard(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	bool cancelable;
 	uint8_t min;
@@ -84,6 +95,7 @@ struct SelectCard : public Process<true> {
 		Process(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {}
 };
 struct SelectCardCodes : public Process<true> {
+	SelectCardCodes(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	bool cancelable;
 	uint8_t min;
@@ -93,6 +105,7 @@ struct SelectCardCodes : public Process<true> {
 		Process(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {}
 };
 struct SelectUnselectCard : public Process<true> {
+	SelectUnselectCard(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	bool cancelable;
 	uint8_t min;
@@ -104,6 +117,7 @@ struct SelectUnselectCard : public Process<true> {
 		finishable(finishable_) {}
 };
 struct SelectChain : public Process<true> {
+	SelectChain(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	uint8_t spe_count;
 	bool forced;
@@ -111,6 +125,7 @@ struct SelectChain : public Process<true> {
 		Process(step_), playerid(playerid_), spe_count(spe_count_), forced(forced_) {}
 };
 struct SelectPlace : public Process<true> {
+	SelectPlace(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	uint8_t count;
 	uint32_t flag;
@@ -125,6 +140,7 @@ struct SelectDisField : SelectPlace {
 	}
 };
 struct SelectPosition : public Process<true> {
+	SelectPosition(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	uint8_t positions;
 	uint32_t code;
@@ -132,6 +148,7 @@ struct SelectPosition : public Process<true> {
 		Process(step_), playerid(playerid_), positions(positions_), code(code_) {}
 };
 struct SelectTributeP : public Process<true> {
+	SelectTributeP(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	bool cancelable;
 	uint8_t min;
@@ -140,10 +157,12 @@ struct SelectTributeP : public Process<true> {
 		Process(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {}
 };
 struct SortChain : public Process<false> {
+	SortChain(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	SortChain(uint16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
 };
 struct SelectCounter : public Process<true> {
+	SelectCounter(CloneTag) : Process(0) {}
 	uint16_t countertype;
 	uint16_t count;
 	uint8_t playerid;
@@ -155,6 +174,7 @@ struct SelectCounter : public Process<true> {
 		oppo(oppo_) {}
 };
 struct SelectSum : public Process<true> {
+	SelectSum(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	int32_t acc;
 	int32_t min;
@@ -163,12 +183,14 @@ struct SelectSum : public Process<true> {
 		Process(step_), playerid(playerid_), acc(acc_), min(min_), max(max_) {}
 };
 struct SortCard : public Process<true> {
+	SortCard(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	bool is_chain;
 	SortCard(uint16_t step_, uint8_t playerid_, bool is_chain_) :
 		Process(step_), playerid(playerid_), is_chain(is_chain_) {}
 };
 struct SelectRelease : public Process<false> {
+	SelectRelease(CloneTag) : Process(0) {}
 	uint16_t min;
 	uint16_t max;
 	uint8_t playerid;
@@ -187,6 +209,7 @@ struct SelectRelease : public Process<false> {
 		extra_release_nonsum_effect(nullptr), must_choose_one(nullptr) {}
 };
 struct SelectTribute : public Process<false> {
+	SelectTribute(CloneTag) : Process(0) {}
 	uint16_t min;
 	uint16_t max;
 	uint8_t playerid;
@@ -202,6 +225,7 @@ struct SelectTribute : public Process<false> {
 		toplayer(toplayer_), zone(zone_), target(target_), extra_release_effect(nullptr) {}
 };
 struct PointEvent : public Process<false> {
+	PointEvent(CloneTag) : Process(0) {}
 	bool skip_trigger;
 	bool skip_freechain;
 	bool skip_new;
@@ -209,6 +233,7 @@ struct PointEvent : public Process<false> {
 		Process(step_), skip_trigger(skip_trigger_), skip_freechain(skip_freechain_), skip_new(skip_new_) {}
 };
 struct QuickEffect : public Process<false> {
+	QuickEffect(CloneTag) : Process(0) {}
 	bool skip_freechain;
 	bool is_opponent;
 	uint8_t priority_player;
@@ -216,12 +241,14 @@ struct QuickEffect : public Process<false> {
 		Process(step_), skip_freechain(skip_freechain_), is_opponent(false), priority_player(priority_player_) {}
 };
 struct IdleCommand : public Process<false> {
+	IdleCommand(CloneTag) : Process(0) {}
 	uint8_t phase_to_change_to;
 	card* card_to_reposition;
 	IdleCommand(uint16_t step_) :
 		Process(step_), phase_to_change_to(0), card_to_reposition(nullptr) {}
 };
 struct PhaseEvent : public Process<false> {
+	PhaseEvent(CloneTag) : Process(0) {}
 	uint16_t phase;
 	bool is_opponent;
 	bool priority_passed;
@@ -229,6 +256,7 @@ struct PhaseEvent : public Process<false> {
 		Process(step_), phase(phase_), is_opponent(false), priority_passed(false) {}
 };
 struct BattleCommand : public Process<false> {
+	BattleCommand(CloneTag) : Process(0) {}
 	uint16_t phase_to_change_to;
 	bool forced_attack;
 	bool forced_attack_done;
@@ -249,6 +277,7 @@ struct BattleCommand : public Process<false> {
 		cards_destroyed_by_battle(cards_destroyed_by_battle_), reason_card(nullptr) {}
 };
 struct DamageStep : public Process<false> {
+	DamageStep(CloneTag) : Process(0) {}
 	uint16_t backup_phase;
 	bool new_attack;
 	card* attacker;
@@ -258,16 +287,19 @@ struct DamageStep : public Process<false> {
 		Process(step_), backup_phase(0), new_attack(new_attack_), attacker(attacker_), attack_target(attack_target_), cards_destroyed_by_battle(nullptr) {}
 };
 struct ForcedBattle : public Process<false> {
+	ForcedBattle(CloneTag) : Process(0) {}
 	uint16_t backup_phase;
 	ForcedBattle(uint16_t step_) :
 		Process(step_), backup_phase(0) {}
 };
 struct AddChain : public Process<false> {
+	AddChain(CloneTag) : Process(0) {}
 	bool is_activated_effect;
 	AddChain(uint16_t step_) :
 		Process(step_), is_activated_effect(false) {}
 };
 struct SolveChain : public Process<false> {
+	SolveChain(CloneTag) : Process(0) {}
 	bool skip_trigger;
 	bool skip_freechain;
 	bool skip_new;
@@ -277,12 +309,14 @@ struct SolveChain : public Process<false> {
 		skip_new(skip_new_), backed_up_operation(0) {}
 };
 struct SolveContinuous : public Process<false> {
+	SolveContinuous(CloneTag) : Process(0) {}
 	uint8_t reason_player;
 	effect* reason_effect;
 	SolveContinuous(uint16_t step_) :
 		Process(step_), reason_player(0), reason_effect(nullptr) {}
 };
 struct ExecuteCost : public Process<false> {
+	ExecuteCost(CloneTag) : Process(0) {}
 	uint8_t triggering_player;
 	bool shuffle_check_was_disabled;
 	effect* triggering_effect;
@@ -291,6 +325,7 @@ struct ExecuteCost : public Process<false> {
 		triggering_effect(triggering_effect_) {}
 };
 struct ExecuteOperation : public Process<false> {
+	ExecuteOperation(CloneTag) : Process(0) {}
 	uint8_t triggering_player;
 	bool shuffle_check_was_disabled;
 	effect* triggering_effect;
@@ -299,6 +334,7 @@ struct ExecuteOperation : public Process<false> {
 		triggering_effect(triggering_effect_) {}
 };
 struct ExecuteTarget : public Process<false> {
+	ExecuteTarget(CloneTag) : Process(0) {}
 	uint8_t triggering_player;
 	bool shuffle_check_was_disabled;
 	effect* triggering_effect;
@@ -307,6 +343,7 @@ struct ExecuteTarget : public Process<false> {
 		triggering_effect(triggering_effect_) {}
 };
 struct Destroy : public Process<false> {
+	Destroy(CloneTag) : Process(0) {}
 	uint8_t reason_player;
 	uint32_t reason;
 	owned_lua<group> targets;
@@ -317,6 +354,7 @@ struct Destroy : public Process<false> {
 		reason_effect(reason_effect_) {}
 };
 struct Release : public Process<false> {
+	Release(CloneTag) : Process(0) {}
 	uint8_t reason_player;
 	uint32_t reason;
 	owned_lua<group> targets;
@@ -327,6 +365,7 @@ struct Release : public Process<false> {
 		reason_effect(reason_effect_) {}
 };
 struct SendTo : public Process<false> {
+	SendTo(CloneTag) : Process(0) {}
 	struct exargs {
 		card_set leave_field, leave_grave, detach;
 		bool check_decktop_visibility[2];
@@ -345,6 +384,7 @@ struct SendTo : public Process<false> {
 		reason_effect(reason_effect_), extra_args(nullptr) {}
 };
 struct DestroyReplace : public Process<false> {
+	DestroyReplace(CloneTag) : Process(0) {}
 	bool battle;
 	owned_lua<group> targets;
 	card* target;
@@ -352,18 +392,21 @@ struct DestroyReplace : public Process<false> {
 		Process(step_), battle(battle_), targets(targets_), target(target_) {}
 };
 struct ReleaseReplace : public Process<false> {
+	ReleaseReplace(CloneTag) : Process(0) {}
 	owned_lua<group> targets;
 	card* target;
 	ReleaseReplace(uint16_t step_, owned_lua<group> targets_, card* target_) :
 		Process(step_), targets(targets_), target(target_) {}
 };
 struct SendToReplace : public Process<false> {
+	SendToReplace(CloneTag) : Process(0) {}
 	owned_lua<group> targets;
 	card* target;
 	SendToReplace(uint16_t step_, owned_lua<group> targets_, card* target_) :
 		Process(step_), targets(targets_), target(target_) {}
 };
 struct MoveToField : public Process<false> {
+	MoveToField(CloneTag) : Process(0) {}
 	bool enable;
 	uint8_t ret;
 	bool pzone;
@@ -378,6 +421,7 @@ struct MoveToField : public Process<false> {
 		location_reason(location_reason_) , confirm(confirm_), target(target_) {}
 };
 struct ChangePos : public Process<false> {
+	ChangePos(CloneTag) : Process(0) {}
 	uint8_t reason_player;
 	bool enable;
 	bool oppo_selection;
@@ -390,6 +434,7 @@ struct ChangePos : public Process<false> {
 		reason_effect(reason_effect_), targets(targets_) {}
 };
 struct OperationReplace : public Process<false> {
+	OperationReplace(CloneTag) : Process(0) {}
 	bool is_destroy;
 	effect* replace_effect;
 	owned_lua<group> targets;
@@ -400,11 +445,13 @@ struct OperationReplace : public Process<false> {
 		targets(targets_), target(target_) {}
 };
 struct ActivateEffect : public Process<false> {
+	ActivateEffect(CloneTag) : Process(0) {}
 	effect* peffect;
 	ActivateEffect(uint16_t step_, effect* peffect_) :
 		Process(step_), peffect(peffect_) {}
 };
 struct SummonRule : public Process<false> {
+	SummonRule(CloneTag) : Process(0) {}
 	uint8_t sumplayer;
 	uint8_t min_tribute;
 	uint8_t max_allowed_tributes;
@@ -422,6 +469,7 @@ struct SummonRule : public Process<false> {
 		extra_summon_effect(nullptr) {}
 };
 struct SpSummonRule : public Process<false> {
+	SpSummonRule(CloneTag) : Process(0) {}
 	uint8_t sumplayer;
 	bool is_mid_chain;
 	uint32_t summon_type;
@@ -435,6 +483,7 @@ struct SpSummonRule : public Process<false> {
 		summon_proc_effect(summon_proc_effect_), cards_to_summon_g(nullptr) {}
 };
 struct SpSummon : public Process<false> {
+	SpSummon(CloneTag) : Process(0) {}
 	uint8_t reason_player;
 	uint32_t zone;
 	effect* reason_effect;
@@ -445,6 +494,7 @@ struct SpSummon : public Process<false> {
 		targets(targets_) {}
 };
 struct FlipSummon : public Process<false> {
+	FlipSummon(CloneTag) : Process(0) {}
 	uint8_t sumplayer;
 	card* target;
 	effect_set flip_summon_cost_effects;
@@ -452,6 +502,7 @@ struct FlipSummon : public Process<false> {
 		Process(step_), sumplayer(sumplayer_), target(target_) {}
 };
 struct MonsterSet : public Process<false> {
+	MonsterSet(CloneTag) : Process(0) {}
 	uint8_t setplayer;
 	uint8_t min_tribute;
 	uint8_t max_allowed_tributes;
@@ -467,6 +518,7 @@ struct MonsterSet : public Process<false> {
 		zone(zone_), target(target_), summon_procedure_effect(proc_), extra_summon_effect(nullptr) {}
 };
 struct SpellSet : public Process<false> {
+	SpellSet(CloneTag) : Process(0) {}
 	uint8_t setplayer;
 	uint8_t toplayer;
 	card* target;
@@ -477,6 +529,7 @@ struct SpellSet : public Process<false> {
 		reason_effect(reason_effect_) {}
 };
 struct SpSummonStep : public Process<false> {
+	SpSummonStep(CloneTag) : Process(0) {}
 	uint32_t zone;
 	owned_lua<group> targets;
 	card* target;
@@ -485,6 +538,7 @@ struct SpSummonStep : public Process<false> {
 		Process(step_), zone(zone_), targets(targets_), target(target_) {}
 };
 struct SpellSetGroup : public Process<false> {
+	SpellSetGroup(CloneTag) : Process(0) {}
 	uint8_t setplayer;
 	uint8_t toplayer;
 	bool confirm;
@@ -497,12 +551,14 @@ struct SpellSetGroup : public Process<false> {
 		ptarget(ptarget_), reason_effect(reason_effect_) {}
 };
 struct SpSummonRuleGroup : public Process<false> {
+	SpSummonRuleGroup(CloneTag) : Process(0) {}
 	uint8_t sumplayer;
 	uint32_t summon_type;
 	SpSummonRuleGroup(uint16_t step_, uint8_t sumplayer_, uint32_t summon_type_) :
 		Process(step_), sumplayer(sumplayer_), summon_type(summon_type_) {}
 };
 struct Draw : public Process<false> {
+	Draw(CloneTag) : Process(0) {}
 	uint16_t count;
 	uint8_t reason_player;
 	uint8_t playerid;
@@ -515,6 +571,7 @@ struct Draw : public Process<false> {
 		reason(reason_), reason_effect(reason_effect_) {}
 };
 struct Damage : public Process<false> {
+	Damage(CloneTag) : Process(0) {}
 	uint8_t reason_player;
 	uint8_t playerid;
 	bool is_step;
@@ -529,6 +586,7 @@ struct Damage : public Process<false> {
 		amount(amount_), reason(reason_), reason_card(reason_card_), reason_effect(reason_effect_) {}
 };
 struct Recover : public Process<false> {
+	Recover(CloneTag) : Process(0) {}
 	uint8_t reason_player;
 	uint8_t playerid;
 	bool is_step;
@@ -541,6 +599,7 @@ struct Recover : public Process<false> {
 		reason(reason_), reason_effect(reason_effect_) {}
 };
 struct Equip : public Process<false> {
+	Equip(CloneTag) : Process(0) {}
 	uint8_t equip_player;
 	bool is_step;
 	bool faceup;
@@ -552,6 +611,7 @@ struct Equip : public Process<false> {
 		equip_card(equip_card_), target(target_) {}
 };
 struct GetControl : public Process<false> {
+	GetControl(CloneTag) : Process(0) {}
 	uint8_t chose_player;
 	uint8_t playerid;
 	uint8_t reset_count;
@@ -566,6 +626,7 @@ struct GetControl : public Process<false> {
 		reset_phase(reset_phase_), zone(zone_), reason_effect(reason_effect_), targets(targets_) {}
 };
 struct SwapControl : public Process<false> {
+	SwapControl(CloneTag) : Process(0) {}
 	uint8_t reset_count;
 	uint8_t reason_player;
 	uint8_t self_selected_sequence;
@@ -579,6 +640,7 @@ struct SwapControl : public Process<false> {
 		reset_phase(reset_phase_), reason_effect(reason_effect_), targets1(targets1_), targets2(targets2_) {}
 };
 struct ControlAdjust : public Process<false> {
+	ControlAdjust(CloneTag) : Process(0) {}
 	uint8_t adjusting_player;
 	card_set destroy_set;
 	card_set adjust_set;
@@ -586,32 +648,38 @@ struct ControlAdjust : public Process<false> {
 		Process(step_), adjusting_player(0) {}
 };
 struct SelfDestroyUnique : public Process<false> {
+	SelfDestroyUnique(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	card* unique_card;
 	SelfDestroyUnique(uint16_t step_, card* unique_card_, uint8_t playerid_) :
 		Process(step_), playerid(playerid_), unique_card(unique_card_) {}
 };
 struct SelfDestroy : public Process<false> {
+	SelfDestroy(CloneTag) : Process(0) {}
 	SelfDestroy(uint16_t step_) :
 		Process(step_) {}
 };
 struct SelfToGrave : public Process<false> {
+	SelfToGrave(CloneTag) : Process(0) {}
 	SelfToGrave(uint16_t step_) :
 		Process(step_) {}
 };
 struct TrapMonsterAdjust : public Process<false> {
+	TrapMonsterAdjust(CloneTag) : Process(0) {}
 	bool oppo_selection;
 	card_set to_grave_set;
 	TrapMonsterAdjust(uint16_t step_) :
 		Process(step_), oppo_selection(false) {}
 };
 struct PayLPCost : public Process<false> {
+	PayLPCost(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	uint32_t cost;
 	PayLPCost(uint16_t step_, uint8_t playerid_, uint32_t cost_) :
 		Process(step_), playerid(playerid_), cost(cost_) {}
 };
 struct RemoveCounter : public Process<false> {
+	RemoveCounter(CloneTag) : Process(0) {}
 	uint8_t rplayer;
 	uint8_t self;
 	uint8_t oppo;
@@ -625,10 +693,12 @@ struct RemoveCounter : public Process<false> {
 		reason(reason_), pcard(pcard_) {}
 };
 struct AttackDisable : public Process<false> {
+	AttackDisable(CloneTag) : Process(0) {}
 	AttackDisable(uint16_t step_) :
 		Process(step_) {}
 };
 struct AnnounceRace : public Process<true> {
+	AnnounceRace(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	uint8_t count;
 	uint64_t available;
@@ -636,6 +706,7 @@ struct AnnounceRace : public Process<true> {
 		Process(step_), playerid(playerid_), count(count_), available(available_) {}
 };
 struct AnnounceAttribute : public Process<true> {
+	AnnounceAttribute(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	uint8_t count;
 	uint32_t available;
@@ -643,16 +714,19 @@ struct AnnounceAttribute : public Process<true> {
 		Process(step_), playerid(playerid_), count(count_), available(available_) {}
 };
 struct AnnounceCard : public Process<true> {
+	AnnounceCard(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	AnnounceCard(uint16_t step_, uint8_t playerid_) :
 		Process(step_), playerid(playerid_) {}
 };
 struct AnnounceNumber : public Process<true> {
+	AnnounceNumber(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	AnnounceNumber(uint16_t step_, uint8_t playerid_) :
 		Process(step_), playerid(playerid_) {}
 };
 struct TossCoin : public Process<false> {
+	TossCoin(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	uint8_t reason_player;
 	uint8_t count;
@@ -663,6 +737,7 @@ struct TossCoin : public Process<false> {
 		reason_effect(reason_effect_) {}
 };
 struct TossDice : public Process<false> {
+	TossDice(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	uint8_t reason_player;
 	uint8_t count1;
@@ -674,12 +749,14 @@ struct TossDice : public Process<false> {
 		reason_effect(reason_effect_) {}
 };
 struct RockPaperScissors : public Process<true> {
+	RockPaperScissors(CloneTag) : Process(0) {}
 	bool repeat;
 	uint8_t hand0;
 	RockPaperScissors(uint16_t step_, bool repeat_) :
 		Process(step_), repeat(repeat_), hand0(0) {}
 };
 struct SelectFusion : public Process<false> {
+	SelectFusion(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	uint64_t chkf;
 	owned_lua<group> fusion_materials;
@@ -691,6 +768,7 @@ struct SelectFusion : public Process<false> {
 		forced_materials(forced_materials_), pcard(pcard_) {}
 };
 struct DiscardHand : public Process<false> {
+	DiscardHand(CloneTag) : Process(0) {}
 	uint8_t playerid;
 	uint8_t min;
 	uint8_t max;
@@ -699,6 +777,7 @@ struct DiscardHand : public Process<false> {
 		Process(step_), playerid(playerid_), min(min_), max(max_), reason(reason_) {}
 };
 struct DiscardDeck : public Process<false> {
+	DiscardDeck(CloneTag) : Process(0) {}
 	uint16_t count;
 	uint8_t playerid;
 	uint32_t reason;
@@ -706,6 +785,7 @@ struct DiscardDeck : public Process<false> {
 		Process(step_), count(count_), playerid(playerid_), reason(reason_) {}
 };
 struct SortDeck : public Process<false> {
+	SortDeck(CloneTag) : Process(0) {}
 	uint16_t count;
 	uint8_t sort_player;
 	uint8_t target_player;
@@ -716,6 +796,7 @@ struct SortDeck : public Process<false> {
 		bottom(bottom_) {}
 };
 struct RemoveOverlay : public Process<false> {
+	RemoveOverlay(CloneTag) : Process(0) {}
 	uint16_t min;
 	uint16_t max;
 	uint16_t replaced_amount;
@@ -732,6 +813,7 @@ struct RemoveOverlay : public Process<false> {
 		oppo(oppo_), reason(reason_), pgroup(pgroup_) {}
 };
 struct XyzOverlay : public Process<false> {
+	XyzOverlay(CloneTag) : Process(0) {}
 	bool send_materials_to_grave;
 	card* target;
 	owned_lua<group> materials;
@@ -740,6 +822,7 @@ struct XyzOverlay : public Process<false> {
 		materials(materials_) {}
 };
 struct RefreshRelay : public Process<false> {
+	RefreshRelay(CloneTag) : Process(0) {}
 	RefreshRelay(uint16_t step_) :
 		Process(step_) {}
 };

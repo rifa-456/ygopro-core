@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 #define OCG_VERSION_MAJOR 11
-#define OCG_VERSION_MINOR 0
+#define OCG_VERSION_MINOR 1
 
 typedef enum OCG_LogTypes {
 	OCG_LOG_TYPE_ERROR,
@@ -95,4 +95,23 @@ typedef struct OCG_QueryInfo {
 	uint32_t overlay_seq;
 }OCG_QueryInfo;
 
-#endif /* OCGAPI_TYPES_H */
+
+
+typedef struct OCG_CloneCallbacks {
+    OCG_DataReader cardReader;
+    void* cardPayload;
+    OCG_ScriptReader scriptReader;
+    void* scriptPayload;
+    OCG_LogHandler logHandler;
+    void* logPayload;
+    OCG_DataReaderDone cardReaderDone;
+    void* cardReaderDonePayload;
+} OCG_CloneCallbacks;
+typedef enum OCG_CloneStatus {
+    OCG_CLONE_SUCCESS=0,
+    OCG_CLONE_INVALID_ARGUMENT=1,
+    OCG_CLONE_NOT_AWAITING=2,
+    OCG_CLONE_UNSUPPORTED=3,
+    OCG_CLONE_ALLOCATION_FAILED=4
+} OCG_CloneStatus;
+#endif

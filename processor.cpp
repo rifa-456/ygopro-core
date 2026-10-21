@@ -807,7 +807,7 @@ bool field::process(Processors::PointEvent& arg) {
 			return _e.reason_player == infos.turn_player;
 		};
 		if(core.current_chain.size() == 0 && (is_flag(DUEL_TCG_FAST_EFFECT_IGNITION) || check_events_ocg())) {
-			chain newchain;
+			chain newchain{};
 			{
 				newchain.evt.event_cards = nullptr;
 				newchain.evt.event_value = 0;
@@ -4127,7 +4127,8 @@ bool field::process(Processors::SolveChain& arg) {
 			}
 			if(cait->applied_chain_counters != nullptr) {
 				restore_chain_counter(cait->triggering_player, *cait->applied_chain_counters);
-				delete cait->applied_chain_counters;
+				pduel->cloned_chain_counters.erase(cait->applied_chain_counters);
+			delete cait->applied_chain_counters;
 				cait->applied_chain_counters = nullptr;
 			}
 			core.new_fchain.remove_if([chaincount = cait->chain_count](const chain& ch) { return ch.evt.event_code == EVENT_CHAINING && ch.evt.event_value == chaincount; });
@@ -4138,6 +4139,7 @@ bool field::process(Processors::SolveChain& arg) {
 			return FALSE;
 		}
 		if(cait->applied_chain_counters != nullptr) {
+			pduel->cloned_chain_counters.erase(cait->applied_chain_counters);
 			delete cait->applied_chain_counters;
 			cait->applied_chain_counters = nullptr;
 		}

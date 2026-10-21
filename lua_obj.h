@@ -25,7 +25,9 @@ class duel;
 template<typename T>
 class owned_lua;
 
+class duel_clone;
 class lua_obj {
+	friend class duel_clone;
 	template<typename T>
 	friend class owned_lua;
 public:
@@ -43,6 +45,7 @@ private:
 
 template<typename T>
 class owned_lua {
+	friend class duel_clone;
 	T* obj{};
 	owned_lua<T>& assign(T* other) {
 		if(obj) {

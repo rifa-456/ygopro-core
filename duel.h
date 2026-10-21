@@ -42,7 +42,9 @@ struct card_data {
 	card_data() = default;
 };
 
+class duel_clone;
 class duel {
+	friend class duel_clone;
 public:
 	class duel_message {
 	private:
@@ -60,6 +62,10 @@ public:
 			write_internal<T>(static_cast<T>(data));
 		}
 	};
+	std::unordered_set<std::vector<uint32_t>*> cloned_chain_counters;
+	bool clone_constructing = false;
+	bool has_ended = false;
+	int last_status = -1;
 	std::vector<uint8_t> buff;
 	std::vector<uint8_t> query_buffer;
 	field* game_field{};
@@ -72,6 +78,8 @@ public:
 
 	std::unordered_map<uint32_t, card_data> data_cache;
 	
+	struct clone_tag {};
+	explicit duel(clone_tag) : random({1,2,3,4}) {}
 	duel() = delete;
 	explicit duel(const OCG_DuelOptions& options, bool& valid_lua_lib);
 	~duel();

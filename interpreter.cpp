@@ -58,7 +58,9 @@ static bool check_lua_stack_unwinding(lua_State* L) {
 }
 
 interpreter::interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_lua_lib): coroutines(256), deleted(pd) {
-	lua_state = luaL_newstate();
+	clone_safe = options.enableUnsafeLibraries == 0;
+	lua_state = luaL_newstatewithalloc(ocg::lua_clone::Heap::allocate, &heap);
+	if(!lua_state) throw std::bad_alloc();
 	if(!check_lua_stack_unwinding(lua_state)) {
 		valid_lua_lib = false;
 		pd->handle_message("The lua library linked with this ocgcore does not support c++'s stack unwinding", OCG_LOG_TYPE_ERROR);
@@ -119,7 +121,7 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_l
 	scriptlib::push_debug_lib(lua_state);
 }
 interpreter::~interpreter() {
-	lua_close(lua_state);
+	if(lua_state) lua_close(lua_state);
 }
 //creates a pointer to a lua_obj in the lua stack
 static inline lua_obj** create_object(lua_State* L) {
@@ -711,6 +713,7 @@ void lua_obj::incr_ref() {
 }
 
 void lua_obj::decr_ref() {
+	if(pduel->clone_constructing) { --num_ref; return; }
 	if(--num_ref == 0) {
 		auto* L = pduel->lua->current_state;
 		/*

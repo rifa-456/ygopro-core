@@ -1,0 +1,9 @@
+set(OCG_CLONE_SOURCES
+    "${CMAKE_CURRENT_LIST_DIR}/../clone.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/graph/duel.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/graph/objects.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/graph/field.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/graph/vm.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/lua/heap.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/lua/vm.cpp"
+)
