@@ -118,6 +118,7 @@ class duel_clone {
     void copy_field();
     void copy_vm();
 public:
+    static void reseed_core(duel& branch, uint64_t seed);
     duel_clone(duel& s, duel& d):source(s),destination(d) {}
     void run();
     static int create(OCG_Duel* output, duel& source, const OCG_CloneCallbacks& callbacks);

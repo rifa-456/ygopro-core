@@ -30,6 +30,7 @@ OCGAPI void OCG_GetVersion(int* major, int* minor);
 /*** DUEL CREATION AND DESTRUCTION ***/
 OCGAPI int OCG_CreateDuel(OCG_Duel* out_ocg_duel, const OCG_DuelOptions* options_ptr);
 OCGAPI int OCG_CloneDuel(OCG_Duel* output, OCG_Duel source, const OCG_CloneCallbacks* callbacks);
+OCGAPI int OCG_CloneDuelWithSeed(OCG_Duel* output, OCG_Duel source, const OCG_CloneCallbacks* callbacks, uint64_t seed);
 OCGAPI void OCG_DestroyDuel(OCG_Duel ocg_duel);
 OCGAPI void OCG_DuelNewCard(OCG_Duel ocg_duel, const OCG_NewCardInfo* info_ptr);
 OCGAPI void OCG_StartDuel(OCG_Duel ocg_duel);
