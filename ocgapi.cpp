@@ -55,6 +55,7 @@ int OCG_CreateDuel(OCG_Duel* out_ocg_duel, const OCG_DuelOptions* options_ptr) {
 }
 
 void OCG_DestroyDuel(OCG_Duel ocg_duel) {
+    OCG_PROFILE_SCOPE(OCG_PROFILE_CORE_DESTROY);
 	if(ocg_duel)
 		delete static_cast<duel*>(ocg_duel);
 }

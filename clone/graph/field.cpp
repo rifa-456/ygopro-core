@@ -2,6 +2,7 @@
 #include "copy.h"
 
 void duel_clone::copy_field() {
+    OCG_PROFILE_SCOPE(OCG_PROFILE_CORE_FIELD);
     auto& d=*destination.game_field;
     const auto& s=*source.game_field;
     copy(d.player,s.player);

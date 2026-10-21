@@ -19,6 +19,7 @@ int OCG_CloneDuelWithSeed(OCG_Duel* output, OCG_Duel source,
     if(status != OCG_CLONE_SUCCESS)
         return status;
     try {
+        OCG_PROFILE_SCOPE(OCG_PROFILE_CORE_RESEED);
         auto& branch = *static_cast<duel*>(*output);
         auto* L = branch.lua->lua_state;
         if(!lua_checkstack(L, 3))

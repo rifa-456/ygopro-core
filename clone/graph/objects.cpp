@@ -2,6 +2,10 @@
 #include "copy.h"
 
 void duel_clone::allocate_objects() {
+    OCG_PROFILE_SCOPE(OCG_PROFILE_CORE_ALLOCATE);
+    OCG_PROFILE_COUNT(OCG_PROFILE_CORE_CARDS, source.cards.size());
+    OCG_PROFILE_COUNT(OCG_PROFILE_CORE_EFFECTS, source.effects.size());
+    OCG_PROFILE_COUNT(OCG_PROFILE_CORE_GROUPS, source.groups.size());
     objects.emplace(&source,&destination);
     objects.emplace(source.lua, destination.lua);
     for(auto* s:source.cards) {
@@ -34,6 +38,7 @@ void duel_clone::allocate_objects() {
 }
 
 void duel_clone::copy_objects() {
+    OCG_PROFILE_SCOPE(OCG_PROFILE_CORE_OBJECTS);
     for(auto* s:source.cards) {
         auto* d=mapped(s);
         copy(d->data,s->data);

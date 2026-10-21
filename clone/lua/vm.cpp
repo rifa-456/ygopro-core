@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "vm.h"
+#include "../profiling/metrics.h"
 #include <cstring>
 #include <stdexcept>
 #include "lfunc.h"
@@ -29,6 +30,7 @@ Clone::Clone(const Heap& source, Heap& destination, Hooks hooks)
 void* Clone::translate(const void* pointer) const {
     if(!pointer) return nullptr;
     auto address = reinterpret_cast<std::uintptr_t>(pointer);
+    OCG_PROFILE_COUNT(OCG_PROFILE_LUA_TRANSLATIONS, 1);
     auto next = blocks_.upper_bound(address);
     if(next == blocks_.begin()) throw std::runtime_error("unmapped Lua pointer");
     const auto& [base, block] = *--next;
@@ -37,6 +39,7 @@ void* Clone::translate(const void* pointer) const {
 }
 
 void* Clone::external(const void* pointer) const {
+    OCG_PROFILE_COUNT(OCG_PROFILE_LUA_EXTERNAL_LOOKUPS, pointer ? 1 : 0);
     if(!pointer) return nullptr;
     auto address = reinterpret_cast<std::uintptr_t>(pointer);
     auto next = blocks_.upper_bound(address);
@@ -236,6 +239,8 @@ lua_State* Clone::run(lua_State* source) {
     if(source->l_G->frealloc != Heap::allocate || source->l_G->ud != &source_)
         throw std::runtime_error("source must use the tracked allocator");
     auto* global = G(source);
+    {
+    OCG_PROFILE_SCOPE(OCG_PROFILE_LUA_COLLECT);
     collect(global->allgc); collect(global->finobj);
     collect(global->tobefnz); collect(global->fixedgc);
     for(auto* object : objects_)
@@ -245,15 +250,25 @@ lua_State* Clone::run(lua_State* source) {
         collect_gray(global->gray); collect_gray(global->grayagain);
         collect_gray(global->weak); collect_gray(global->ephemeron); collect_gray(global->allweak);
     }
+    OCG_PROFILE_COUNT(OCG_PROFILE_LUA_OBJECTS, objects_.size());
+    }
     try {
+        {
+        OCG_PROFILE_SCOPE(OCG_PROFILE_LUA_COPY);
         for(const auto& [address, size] : source_.blocks) {
             void* output = Heap::allocate(&destination_, nullptr, 0, size);
             if(!output) throw std::bad_alloc();
+            OCG_PROFILE_COUNT(OCG_PROFILE_LUA_BLOCKS, 1);
+            OCG_PROFILE_COUNT(OCG_PROFILE_LUA_BYTES, size);
             std::memcpy(output, reinterpret_cast<const void*>(address), size);
             blocks_.emplace(address, Block{size, reinterpret_cast<std::uintptr_t>(output)});
         }
+        }
+        {
+        OCG_PROFILE_SCOPE(OCG_PROFILE_LUA_FIX);
         fix_global(global);
         for(auto* object : objects_) fix_object(object);
+        }
         return mapped(source);
     } catch(...) {
         // Incomplete clones must never run Lua finalizers or touch source owners.

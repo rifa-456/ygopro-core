@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #pragma once
+#include "../profiling/metrics.h"
 #include <cstring>
 #include <memory>
 #include <optional>
@@ -19,6 +20,7 @@ class duel_clone {
 
     template<class T> T* mapped(T* p) const {
         if(!p) return nullptr;
+        OCG_PROFILE_COUNT(OCG_PROFILE_CORE_MAPPED_LOOKUPS, 1);
         auto it = objects.find(p);
         if(it == objects.end()) throw std::runtime_error(std::string("unmapped core object: ") + (std::is_same_v<T,card> ? "card" : std::is_same_v<T,effect> ? "effect" : std::is_same_v<T,group> ? "group" : "userdata"));
         return static_cast<T*>(it->second);

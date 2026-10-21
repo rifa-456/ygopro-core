@@ -4,6 +4,7 @@
 #include <lobject.h>
 
 void duel_clone::copy_vm() {
+    OCG_PROFILE_SCOPE(OCG_PROFILE_LUA_CLONE);
     auto& s=*source.lua;
     auto& d=*destination.lua;
     ocg::lua_clone::Hooks hooks;

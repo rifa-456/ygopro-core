@@ -3,7 +3,7 @@ if not externalincludedirs then
 	externalincludedirs = sysincludedirs
 end
 local ocgcore_config=function()
-	files { "*.h", "*.hpp", "*.cpp", "RNG/*.hpp", "RNG/*.cpp", "clone/graph/*.cpp", "clone/lua/*.cpp", "clone/**.h", "clone/**.inc" }
+	files { "*.h", "*.hpp", "*.cpp", "RNG/*.hpp", "RNG/*.cpp", "clone/graph/*.cpp", "clone/lua/*.cpp", "clone/profiling/*.cpp", "clone/**.h", "clone/**.inc" }
 	warnings "Extra"
 	cppdialect "C++17"
 	rtti "Off"
