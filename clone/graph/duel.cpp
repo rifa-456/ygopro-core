@@ -3,13 +3,18 @@
 
 void duel_clone::run() {
     auto& d=destination;
+    {
+    OCG_PROFILE_SCOPE(OCG_PROFILE_CORE_SETUP);
     d.lua=new interpreter(&d,interpreter::clone_tag{});
     OCG_DuelOptions options{};
     d.game_field=new field(&d,options);
     objects.emplace(source.game_field,d.game_field);
+    }
     allocate_objects();
     copy_objects();
     copy_field();
+    {
+    OCG_PROFILE_SCOPE(OCG_PROFILE_CORE_METADATA);
     copy(d.assumes,source.assumes);
     copy(d.uncopy,source.uncopy);
     d.data_cache=source.data_cache;
@@ -17,6 +22,7 @@ void duel_clone::run() {
     d.query_buffer=source.query_buffer;
     d.messages=source.messages;
     d.random=source.random;
+    }
     copy_vm();
     d.last_status=source.last_status;
 }

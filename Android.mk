@@ -6,6 +6,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := ocgcore
 LOCAL_MODULE_FILENAME := libocgcore
 LOCAL_SRC_FILES := clone.cpp \
+                clone/profiling/metrics.cpp \
                 clone/graph/duel.cpp \
                 clone/graph/objects.cpp \
                 clone/graph/field.cpp \

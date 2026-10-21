@@ -171,6 +171,22 @@ void check_seeded_clone(duel& source, Host& host) {
     require(a->get_next_integer(1, 1000000) == exact->get_next_integer(1, 1000000),
             "exact clone did not preserve seeded core stream");
 }
+void check_profiling(duel& source, Host& host) {
+    if(!OCG_CloneProfileEnabled()) return;
+    require(OCG_CloneProfileBegin(), "could not begin clone profiling");
+    auto branch = clone(source, host);
+    branch.reset();
+    OCG_CloneProfileRecord record{};
+    require(OCG_CloneProfileEnd(&record), "could not end clone profiling");
+    require(record.counters[OCG_PROFILE_CLONE_ATTEMPTS] == 1, "wrong clone attempt count");
+    require(record.counters[OCG_PROFILE_CLONE_SUCCESSES] == 1, "wrong clone success count");
+    require(record.counters[OCG_PROFILE_LUA_BLOCKS] > 0, "Lua block count missing");
+    require(record.counters[OCG_PROFILE_LUA_BYTES] > 0, "Lua byte count missing");
+    require(record.counters[OCG_PROFILE_LUA_TRANSLATIONS] > 0, "Lua translation count missing");
+    require(record.nanoseconds[OCG_PROFILE_CORE_CLONE] > 0, "clone timing missing");
+    require(record.nanoseconds[OCG_PROFILE_LUA_CLONE] >= record.nanoseconds[OCG_PROFILE_LUA_COPY],
+            "nested Lua timing exceeds parent");
+}
 int main(int argc,char** argv) {
     try {
         require(argc==3,"usage: integration CardScripts fixture-directory");
@@ -179,6 +195,7 @@ int main(int argc,char** argv) {
             Host h{argv[1],argv[2]};h.load_cards();Host other=h;
             auto original=setup(h,spell);
             check_seeded_clone(*original, other);
+            check_profiling(*original, other);
             {
                 int unknown=0;auto* L=original->lua->lua_state;
                 lua_pushlightuserdata(L,&unknown);lua_setglobal(L,"clone_failure_probe");
