@@ -1441,12 +1441,16 @@ void field::reset_chain() {
 		ensure_luaL_stack(luaL_unref, pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim_p.function);
 	core.chain_limit_p.clear();
 	core.effect_count_code_chain.clear();
-	for(auto eit = effects.cheff.begin(); eit != effects.cheff.end();) {
-		auto rm = eit++;
-		if((*rm)->is_flag(EFFECT_FLAG_FIELD_ONLY))
-			remove_effect((*rm));
+	// Effect addresses change when cloning; reset in stable creation order.
+	std::vector<effect*> reset_effects(effects.cheff.begin(), effects.cheff.end());
+	std::sort(reset_effects.begin(), reset_effects.end(), effect_sort_by_initial_id{});
+	for(auto* peffect : reset_effects) {
+		if(effects.cheff.find(peffect) == effects.cheff.end())
+			continue;
+		if(peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
+			remove_effect(peffect);
 		else
-			(*rm)->handler->remove_effect((*rm));
+			peffect->handler->remove_effect(peffect);
 	}
 }
 processor::effect_count_map& field::get_count_map(uint8_t flag) {
