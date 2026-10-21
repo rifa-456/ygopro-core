@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <stdexcept>
+#include <type_traits>
 #include <unordered_map>
 #include "../../duel.h"
 #include "../../field.h"
@@ -35,7 +36,8 @@ class duel_clone {
         copy(d, s);
         return d;
     }
-    template<class T> void copy(T& d, const T& s) {
+    template<class T, std::enable_if_t<!std::is_array_v<T>, int> = 0>
+    void copy(T& d, const T& s) {
         static_assert(std::is_arithmetic_v<T> || std::is_enum_v<T>, "missing explicit clone field handler");
         d = s;
     }
