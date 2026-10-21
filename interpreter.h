@@ -18,6 +18,7 @@
 #include "lua_obj.h"
 #include "ocgapi_types.h"
 #include "scriptlib.h"
+#include "clone/lua/heap.h"
 
 class card;
 class effect;
@@ -28,7 +29,9 @@ struct lua_State;
 
 using lua_invalid = lua_obj_helper<LuaParam::DELETED>;
 
+class duel_clone;
 class interpreter {
+	friend class duel_clone;
 	char msgbuf[128]{};
 public:
 	using coroutine_map = std::unordered_map<int32_t, std::pair<lua_State*, int32_t>>;
@@ -46,6 +49,8 @@ private:
 public:
 	using param_list = std::list<std::pair<lua_param, LuaParam>>;
 	
+	ocg::lua_clone::Heap heap;
+	bool clone_safe = true;
 	duel* pduel;
 	lua_State* lua_state;
 	lua_State* current_state;
@@ -59,6 +64,8 @@ public:
 
 	interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_lua_lib);
 	~interpreter();
+	struct clone_tag {};
+	interpreter(duel* pd, clone_tag) : pduel(pd), lua_state(nullptr), current_state(nullptr), no_action(0), call_depth(0), deleted(pd) {}
 
 	void register_card(card* pcard);
 	void register_effect(effect* peffect);

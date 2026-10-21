@@ -60,6 +60,7 @@ void OCG_DestroyDuel(OCG_Duel ocg_duel) {
 }
 
 void OCG_DuelNewCard(OCG_Duel ocg_duel, const OCG_NewCardInfo* info_ptr) {
+	static_cast<duel*>(ocg_duel)->last_status = -1;
 	auto* pduel = static_cast<duel*>(ocg_duel);
 	auto& game_field = *(pduel->game_field);
 	const auto& info = *info_ptr;
@@ -105,17 +106,20 @@ void OCG_DuelNewCard(OCG_Duel ocg_duel, const OCG_NewCardInfo* info_ptr) {
 
 void OCG_StartDuel(OCG_Duel ocg_duel) {
 	auto* pduel = static_cast<duel*>(ocg_duel);
+	pduel->last_status = -1;
 	pduel->game_field->emplace_process<Processors::Startup>();
 }
 
 int OCG_DuelProcess(OCG_Duel ocg_duel) {
 	auto* pduel = static_cast<duel*>(ocg_duel);
+	pduel->last_status = -1;
 	pduel->buff.clear();
 	auto flag = OCG_DUEL_STATUS_END;
 	do {
 		flag = pduel->game_field->process();
 		pduel->generate_buffer();
 	} while(pduel->buff.size() == 0 && flag == OCG_DUEL_STATUS_CONTINUE);
+	pduel->last_status = flag;
 	return flag;
 }
 
@@ -129,10 +133,12 @@ void* OCG_DuelGetMessage(OCG_Duel ocg_duel, uint32_t* length) {
 
 void OCG_DuelSetResponse(OCG_Duel ocg_duel, const void* buffer, uint32_t length) {
 	auto* pduel = static_cast<duel*>(ocg_duel);
+	pduel->last_status = -1;
 	pduel->set_response(buffer, length);
 }
 
 int OCG_LoadScript(OCG_Duel ocg_duel, const char* buffer, uint32_t length, const char* name) {
+	static_cast<duel*>(ocg_duel)->last_status = -1;
 	auto* pduel = static_cast<duel*>(ocg_duel);
 	return pduel->lua->load_script(buffer, length, name);
 }

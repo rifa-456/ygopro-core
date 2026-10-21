@@ -728,6 +728,9 @@ LUA_FUNCTION(__le) {
 	return 1;
 }
 LUA_FUNCTION(__gc) {
+    // Finalized userdata can survive until another collector cycle.
+    // Do not leave a dangling native pointer in that still-owned Lua object.
+    *static_cast<lua_obj**>(lua_touserdata(L, 1)) = &pduel->lua->deleted;
 	pduel->delete_group(self);
 	return 1;
 }

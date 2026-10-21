@@ -5,7 +5,14 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := ocgcore
 LOCAL_MODULE_FILENAME := libocgcore
-LOCAL_SRC_FILES := card.cpp \
+LOCAL_SRC_FILES := clone.cpp \
+                clone/graph/duel.cpp \
+                clone/graph/objects.cpp \
+                clone/graph/field.cpp \
+                clone/graph/vm.cpp \
+                clone/lua/heap.cpp \
+                clone/lua/vm.cpp \
+                card.cpp \
 				duel.cpp \
 				effect.cpp \
 				field.cpp \

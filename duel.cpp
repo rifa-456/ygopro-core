@@ -34,6 +34,8 @@ duel::~duel() {
 	}
 	for(auto& peffect : effects)
 		delete peffect;
+	for(auto* counter : cloned_chain_counters) delete counter;
+	cloned_chain_counters.clear();
 	delete game_field;
 	delete lua;
 	// TODO: this should actually be an assertion as no group should outlive the lua state
@@ -45,6 +47,8 @@ duel::~duel() {
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 void duel::clear() {
+	last_status = -1;
+	has_ended = false;
 	static constexpr OCG_DuelOptions default_options{ {},0,{8000,5,1},{8000,5,1} };
 	for(auto& pcard : cards)
 		delete pcard;
@@ -52,6 +56,8 @@ void duel::clear() {
 		lua->unregister_effect(peffect);
 		delete peffect;
 	}
+	for(auto* counter : cloned_chain_counters) delete counter;
+	cloned_chain_counters.clear();
 	delete game_field;
 	//force full garbage collection to clean the groups
 	lua->collect(true);
@@ -143,6 +149,7 @@ int32_t duel::get_next_integer(int32_t l, int32_t h) {
 	return static_cast<int32_t>((n % range) + l);
 }
 duel::duel_message* duel::new_message(uint8_t message) {
+	if(message == MSG_WIN) has_ended = true;
 	return &(messages.emplace_back(message));
 }
 const card_data& duel::read_card(uint32_t code) {
