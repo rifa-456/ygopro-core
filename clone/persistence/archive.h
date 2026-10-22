@@ -5,6 +5,7 @@
 #include <deque>
 #include <string>
 #include <tuple>
+#include <type_traits>
 template <class T> struct snapshot_variant : std::false_type {};
 template <class... T> struct snapshot_variant<std::variant<T...>> : std::true_type {};
 class duel_archive {
@@ -52,7 +53,8 @@ class duel_archive {
     template <class T> void io(T &value) {
         copy(value, value);
     }
-    template <class T> void copy(T &value, const T &) {
+    template <class T, std::enable_if_t<!std::is_array_v<T>, int> = 0>
+    void copy(T &value, const T &) {
         static_assert(std::is_arithmetic_v<T> || std::is_enum_v<T>,
                       "missing snapshot field handler");
         stream_.scalar(value);
