@@ -6,6 +6,7 @@
  */
 #ifndef FIELD_H_
 #define FIELD_H_
+#include "clone/memory/object_pool.h"
 
 #include <array>
 #include <list>
@@ -396,6 +397,11 @@ struct processor {
 
 class field {
 public:
+    static void* operator new(std::size_t size);
+    static void* operator new(std::size_t size,ocg::memory::ObjectPool& pool);
+    static void operator delete(void* pointer) noexcept;
+    static void operator delete(void* pointer,ocg::memory::ObjectPool& pool) noexcept;
+
 	duel* pduel;
 	std::array<player_info,2> player;
 	card* temp_card;

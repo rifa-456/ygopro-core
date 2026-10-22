@@ -13,6 +13,7 @@
 #include "../lua/vm.h"
 
 class duel_clone {
+    friend class duel_checkpoint;
     duel& source;
     duel& destination;
     std::unordered_map<const void*, void*> objects;
@@ -70,7 +71,7 @@ class duel_clone {
         d.clear(); for(const auto& v:s) d.insert(make(v));
     }
     template<class T, class H, class E, class A> void copy(std::unordered_set<T,H,E,A>& d, const std::unordered_set<T,H,E,A>& s) {
-        d.clear(); d.reserve(s.size()); for(const auto& v:s) d.insert(make(v));
+        d.clear(); if(!s.empty()) d.reserve(s.size()); for(const auto& v:s) d.insert(make(v));
     }
     template<class K, class V, class C, class A> void copy(std::map<K,V,C,A>& d, const std::map<K,V,C,A>& s) {
         d.clear(); for(const auto& [k,v]:s) d.emplace(make(k),make(v));
@@ -79,7 +80,7 @@ class duel_clone {
         d.clear(); for(const auto& [k,v]:s) d.emplace(make(k),make(v));
     }
     template<class K, class V, class H, class E, class A> void copy(std::unordered_map<K,V,H,E,A>& d, const std::unordered_map<K,V,H,E,A>& s) {
-        d.clear(); d.reserve(s.size()); for(const auto& [k,v]:s) d.emplace(make(k),make(v));
+        d.clear(); if(!s.empty()) d.reserve(s.size()); for(const auto& [k,v]:s) d.emplace(make(k),make(v));
     }
     template<class T> void copy(std::unique_ptr<T>& d, const std::unique_ptr<T>& s) {
         d = s ? std::make_unique<T>(make(*s)) : nullptr;
@@ -119,7 +120,9 @@ class duel_clone {
     void copy_objects();
     void copy_field();
     void copy_vm();
+    void copy_metadata();
 public:
+    static void reseed(duel& branch,uint64_t seed);
     static void reseed_core(duel& branch, uint64_t seed);
     duel_clone(duel& s, duel& d):source(s),destination(d) {}
     void run();

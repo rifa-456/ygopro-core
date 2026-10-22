@@ -9,28 +9,28 @@ void duel_clone::allocate_objects() {
     objects.emplace(&source,&destination);
     objects.emplace(source.lua, destination.lua);
     for(auto* s:source.cards) {
-        auto d=std::make_unique<card>(&destination);
+        auto d=std::unique_ptr<card>(new (destination.storage) card(&destination));
         static_cast<lua_obj&>(*d)=static_cast<const lua_obj&>(*s);
         d->pduel=&destination;
         d->cardid=s->cardid;
-        objects.emplace(s,d.get());
+        objects.insert_or_assign(s,d.get());
         destination.cards.insert(d.get());
         d.release();
     }
     for(auto* s:source.effects) {
-        auto d=std::make_unique<effect>(&destination);
+        auto d=std::unique_ptr<effect>(new (destination.storage) effect(&destination));
         static_cast<lua_obj&>(*d)=static_cast<const lua_obj&>(*s);
         d->pduel=&destination;
         d->id=s->id; d->initial_id=s->initial_id;
-        objects.emplace(s,d.get());
+        objects.insert_or_assign(s,d.get());
         destination.effects.insert(d.get());
         d.release();
     }
     for(auto* s:source.groups) {
-        auto d=std::make_unique<group>(&destination);
+        auto d=std::unique_ptr<group>(new (destination.storage) group(&destination));
         static_cast<lua_obj&>(*d)=static_cast<const lua_obj&>(*s);
         d->pduel=&destination;
-        objects.emplace(s,d.get());
+        objects.insert_or_assign(s,d.get());
         destination.groups.insert(d.get());
         d.release();
     }

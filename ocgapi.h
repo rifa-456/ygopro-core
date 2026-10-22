@@ -32,6 +32,12 @@ OCGAPI void OCG_GetVersion(int* major, int* minor);
 OCGAPI int OCG_CreateDuel(OCG_Duel* out_ocg_duel, const OCG_DuelOptions* options_ptr);
 OCGAPI int OCG_CloneDuel(OCG_Duel* output, OCG_Duel source, const OCG_CloneCallbacks* callbacks);
 OCGAPI int OCG_CloneDuelWithSeed(OCG_Duel* output, OCG_Duel source, const OCG_CloneCallbacks* callbacks, uint64_t seed);
+OCGAPI int OCG_CreateCheckpoint(OCG_Checkpoint* output, OCG_Duel owner);
+OCGAPI void OCG_DestroyCheckpoint(OCG_Checkpoint checkpoint);
+/* Capture at AWAITING. Restore only to the originating, quiescent duel.
+   A failed reconstruction invalidates the duel; only destruction is then supported. */
+OCGAPI int OCG_RestoreCheckpoint(OCG_Duel owner, OCG_Checkpoint checkpoint);
+OCGAPI int OCG_RestoreCheckpointWithSeed(OCG_Duel owner, OCG_Checkpoint checkpoint, uint64_t seed);
 OCGAPI int OCG_CloneProfileEnabled(void);
 OCGAPI int OCG_CloneProfileBegin(void);
 OCGAPI int OCG_CloneProfileEnd(OCG_CloneProfileRecord* output);

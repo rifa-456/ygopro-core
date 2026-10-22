@@ -7,22 +7,13 @@ void duel_clone::run() {
     OCG_PROFILE_SCOPE(OCG_PROFILE_CORE_SETUP);
     d.lua=new interpreter(&d,interpreter::clone_tag{});
     OCG_DuelOptions options{};
-    d.game_field=new field(&d,options);
+    d.game_field=new (d.storage) field(&d,options);
     objects.emplace(source.game_field,d.game_field);
     }
     allocate_objects();
     copy_objects();
     copy_field();
-    {
-    OCG_PROFILE_SCOPE(OCG_PROFILE_CORE_METADATA);
-    copy(d.assumes,source.assumes);
-    copy(d.uncopy,source.uncopy);
-    d.data_cache=source.data_cache;
-    d.buff=source.buff;
-    d.query_buffer=source.query_buffer;
-    d.messages=source.messages;
-    d.random=source.random;
-    }
+    copy_metadata();
     copy_vm();
     d.last_status=source.last_status;
 }
@@ -50,4 +41,11 @@ int duel_clone::create(OCG_Duel* output, duel& source, const OCG_CloneCallbacks&
     } catch(...) {
         return OCG_CLONE_UNSUPPORTED;
     }
+}
+
+void duel_clone::copy_metadata() {
+    auto& d=destination;
+    copy(d.assumes,source.assumes);copy(d.uncopy,source.uncopy);
+    d.data_cache=source.data_cache;d.buff=source.buff;d.query_buffer=source.query_buffer;
+    d.messages=source.messages;d.random=source.random;d.has_ended=source.has_ended;
 }

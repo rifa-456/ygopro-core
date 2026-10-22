@@ -235,7 +235,7 @@ void Clone::fix_object(GCObject* source) {
 }
 
 lua_State* Clone::run(lua_State* source) {
-    if(!destination_.blocks.empty()) throw std::runtime_error("clone destination must be empty");
+    if(!destination_.empty()) throw std::runtime_error("clone destination must be empty");
     if(source->l_G->frealloc != Heap::allocate || source->l_G->ud != &source_)
         throw std::runtime_error("source must use the tracked allocator");
     auto* global = G(source);
@@ -255,7 +255,7 @@ lua_State* Clone::run(lua_State* source) {
     try {
         {
         OCG_PROFILE_SCOPE(OCG_PROFILE_LUA_COPY);
-        for(const auto& [address, size] : source_.blocks) {
+        for(const auto& [address, size] : source_.blocks()) {
             void* output = Heap::allocate(&destination_, nullptr, 0, size);
             if(!output) throw std::bad_alloc();
             OCG_PROFILE_COUNT(OCG_PROFILE_LUA_BLOCKS, 1);

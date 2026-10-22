@@ -1,5 +1,12 @@
+include("${CMAKE_CURRENT_LIST_DIR}/dependencies.cmake")
 set(OCG_CLONE_SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/../clone.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/checkpoint/capture.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/checkpoint/restore.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/checkpoint/api.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/memory/buffer.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/memory/object_pool.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/lua/region.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/profiling/metrics.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/random.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/graph/duel.cpp"

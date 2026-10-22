@@ -6,6 +6,7 @@
  */
 #ifndef EFFECT_H_
 #define EFFECT_H_
+#include "clone/memory/object_pool.h"
 
 #include <lua.h> //lua_Integer
 #include <vector>
@@ -23,6 +24,11 @@ enum effect_flag2 : uint32_t;
 
 class effect : public lua_obj_helper<LuaParam::EFFECT> {
 public:
+    static void* operator new(std::size_t size);
+    static void* operator new(std::size_t size,ocg::memory::ObjectPool& pool);
+    static void operator delete(void* pointer) noexcept;
+    static void operator delete(void* pointer,ocg::memory::ObjectPool& pool) noexcept;
+
 	uint8_t count_limit{};
 	uint8_t count_limit_max{};
 	uint8_t count_flag{};
