@@ -139,5 +139,5 @@ void copy(P::SendTo::exargs& d, const P::SendTo::exargs& s) {
     copy(d.check_decktop_visibility, s.check_decktop_visibility);
     copy(d.cv, s.cv);
     copy(d.predirect, s.predirect);
-    d.cvit = d.cv.begin() + std::distance(s.cv.cbegin(), card_vector::const_iterator(s.cvit));
+    copy_iterator(d.cvit, d.cv, s.cvit, s.cv);
 }

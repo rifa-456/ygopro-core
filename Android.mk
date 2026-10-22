@@ -6,6 +6,13 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := ocgcore
 LOCAL_MODULE_FILENAME := libocgcore
 LOCAL_SRC_FILES := clone.cpp \
+                clone/persistence/api.cpp \
+                clone/persistence/graph.cpp \
+                clone/persistence/objects.cpp \
+                clone/persistence/field.cpp \
+                clone/persistence/vm.cpp \
+                clone/persistence/values.cpp \
+                clone/persistence/image.cpp \
                 clone/random.cpp \
                 clone/checkpoint/api.cpp \
                 clone/checkpoint/capture.cpp \
@@ -45,6 +52,7 @@ LOCAL_LDFLAGS += "-Wl,-z,max-page-size=16384"
 LOCAL_LDFLAGS += "-Wl,-z,common-page-size=16384"
 endif
 LOCAL_STATIC_LIBRARIES += liblua
+LOCAL_LDLIBS += -ldl
 
 include $(BUILD_SHARED_LIBRARY)
 

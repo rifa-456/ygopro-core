@@ -9,6 +9,9 @@ boost_dep = dependency('boost', version : '==1.83.0')
 
 linker_args = []
 ocg_args = []
+if host_machine.system() == 'linux'
+    linker_args += ['-ldl']
+endif
 if get_option('default_library') == 'shared'
 	ocg_args += ['-DOCGCORE_EXPORT_FUNCTIONS']
 	if meson.get_compiler('cpp').get_id() != 'msvc'
@@ -22,6 +25,14 @@ endif
 
 ocgcore_src = files([
     'clone.cpp',
+    'clone/persistence/api.cpp',
+    'clone/persistence/graph.cpp',
+    'clone/persistence/objects.cpp',
+    'clone/persistence/field.cpp',
+    'clone/persistence/vm.cpp',
+    'clone/persistence/values.cpp',
+    'clone/persistence/image.cpp',
+
     'clone/random.cpp',
     'clone/checkpoint/api.cpp',
     'clone/checkpoint/capture.cpp',

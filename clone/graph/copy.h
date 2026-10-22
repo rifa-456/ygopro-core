@@ -116,6 +116,11 @@ class duel_clone {
     #include "processors/announcements.inc"
     #include "field.inc"
 
+    void copy_iterator(card_vector::iterator& d, card_vector& dv,
+                       card_vector::iterator s, const card_vector& sv) {
+        d = dv.begin() + std::distance(sv.cbegin(), card_vector::const_iterator(s));
+    }
+
     void allocate_objects();
     void copy_objects();
     void copy_field();

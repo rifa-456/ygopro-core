@@ -47,6 +47,7 @@ class duel_checkpoint;
 class duel_clone;
 class duel {
 	friend class duel_clone;
+    friend class duel_archive;
     friend class duel_checkpoint;
 public:
     ocg::memory::ObjectPool storage;
