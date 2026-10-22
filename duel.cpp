@@ -22,10 +22,13 @@ duel::duel(const OCG_DuelOptions& options, bool& valid_lua_lib) :
 	lua = new interpreter(this, options, valid_lua_lib);
 	if(!valid_lua_lib)
 		return;
-	game_field = new field(this, options);
+	game_field = new (storage) field(this, options);
 	game_field->temp_card = new_card(0);
 }
 duel::~duel() {
+    clone_constructing=true;
+    delete game_field;
+    game_field=nullptr;
 	for(auto& pcard : cards)
 		delete pcard;
 	for(auto& pgroup : groups) {
@@ -36,7 +39,6 @@ duel::~duel() {
 		delete peffect;
 	for(auto* counter : cloned_chain_counters) delete counter;
 	cloned_chain_counters.clear();
-	delete game_field;
 	delete lua;
 	// TODO: this should actually be an assertion as no group should outlive the lua state
 	for(auto& pgroup : groups)
@@ -47,6 +49,7 @@ duel::~duel() {
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 void duel::clear() {
+    checkpoint_identity=std::make_shared<int>(0);
 	last_status = -1;
 	has_ended = false;
 	static constexpr OCG_DuelOptions default_options{ {},0,{8000,5,1},{8000,5,1} };
@@ -72,14 +75,14 @@ void duel::clear() {
 		pgroup->is_iterator_dirty = true;
 	}
 	effects.clear();
-	game_field = new field(this, default_options);
+	game_field = new (storage) field(this, default_options);
 	game_field->temp_card = new_card(0);
 }
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
 card* duel::new_card(uint32_t code) {
-	card* pcard = new card(this);
+	card* pcard = new (storage) card(this);
 	cards.insert(pcard);
 	if(code)
 		pcard->data = read_card(code);
@@ -88,7 +91,7 @@ card* duel::new_card(uint32_t code) {
 	return pcard;
 }
 effect* duel::new_effect() {
-	effect* peffect = new effect(this);
+	effect* peffect = new (storage) effect(this);
 	effects.insert(peffect);
 	lua->register_effect(peffect);
 	return peffect;

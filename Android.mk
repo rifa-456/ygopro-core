@@ -6,6 +6,13 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := ocgcore
 LOCAL_MODULE_FILENAME := libocgcore
 LOCAL_SRC_FILES := clone.cpp \
+                clone/random.cpp \
+                clone/checkpoint/api.cpp \
+                clone/checkpoint/capture.cpp \
+                clone/checkpoint/restore.cpp \
+                clone/memory/buffer.cpp \
+                clone/memory/object_pool.cpp \
+                clone/lua/region.cpp \
                 clone/profiling/metrics.cpp \
                 clone/graph/duel.cpp \
                 clone/graph/objects.cpp \
@@ -31,7 +38,8 @@ LOCAL_SRC_FILES := clone.cpp \
 				scriptlib.cpp
 
 LOCAL_CFLAGS   := -pedantic -Wextra -fvisibility=hidden -DOCGCORE_EXPORT_FUNCTIONS -DNDEBUG
-LOCAL_CPPFLAGS := -fexceptions -fno-rtti
+LOCAL_CPPFLAGS := -fexceptions -frtti
+LOCAL_C_INCLUDES += $(BOOST_ROOT)
 ifeq ($(TARGET_ARCH_ABI), arm64-v8a)
 LOCAL_LDFLAGS += "-Wl,-z,max-page-size=16384"
 LOCAL_LDFLAGS += "-Wl,-z,common-page-size=16384"

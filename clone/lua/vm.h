@@ -2,6 +2,7 @@
 #pragma once
 #include "heap.h"
 #include <functional>
+#include <map>
 #include <unordered_set>
 #include "lua.h"
 #include "lstate.h"

@@ -6,6 +6,7 @@
  */
 #ifndef CARD_H_
 #define CARD_H_
+#include "clone/memory/object_pool.h"
 
 #include <map>
 #include <optional>
@@ -80,6 +81,11 @@ struct card_state {
 
 class card : public lua_obj_helper<LuaParam::CARD> {
 public:
+    static void* operator new(std::size_t size);
+    static void* operator new(std::size_t size,ocg::memory::ObjectPool& pool);
+    static void operator delete(void* pointer) noexcept;
+    static void operator delete(void* pointer,ocg::memory::ObjectPool& pool) noexcept;
+
 	struct effect_relation_hash {
 		inline std::size_t operator()(const std::pair<effect*, uint16_t>& v) const {
 			return std::hash<uint16_t>()(v.second);

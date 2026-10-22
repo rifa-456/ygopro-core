@@ -1,63 +1,66 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
 #include "heap.h"
-#include <algorithm>
-#include <cstdlib>
+#include "region.h"
 #include <cstring>
-
+#include <new>
+#include <stdexcept>
 namespace ocg::lua_clone {
-Heap::~Heap() { release_all(); }
-
-void* Heap::allocate(void* opaque, void* previous, std::size_t,
-                     std::size_t size) noexcept {
-    auto& heap = *static_cast<Heap*>(opaque);
-    auto found = heap.blocks.find(reinterpret_cast<std::uintptr_t>(previous));
-    if(previous && found == heap.blocks.end()) std::abort();
-    if(size == 0) {
-        if(previous) {
-            std::free(previous);
-            heap.blocks.erase(found);
-            ++heap.releases;
-        }
-        return nullptr;
-    }
-    if(heap.allocations >= heap.fail_after) return nullptr;
-    void* next = std::malloc(size);
-    if(!next) return nullptr;
+Heap::Heap(std::size_t capacity) : capacity_(capacity) {
+}
+Heap::~Heap() = default;
+void *Heap::allocate(void *opaque, void *previous, std::size_t, std::size_t size) noexcept {
+    auto &heap = *static_cast<Heap *>(opaque);
     try {
-        heap.blocks.emplace(reinterpret_cast<std::uintptr_t>(next), size);
-    } catch(...) {
-        std::free(next);
+        if (size == 0) {
+            if (previous) {
+                heap.region_->release(previous);
+                ++heap.releases;
+            }
+            return nullptr;
+        }
+        if (heap.allocations >= heap.fail_after)
+            return nullptr;
+        if (!heap.region_)
+            heap.region_ = std::make_unique<Region>(heap.capacity_);
+        auto *result = heap.region_->resize(previous, size);
+        ++heap.allocations;
+        if (previous)
+            ++heap.releases;
+        return result;
+    } catch (...) {
         return nullptr;
     }
-    ++heap.allocations;
-    if(previous) {
-        std::memcpy(next, previous, std::min(size, found->second));
-        std::free(previous);
-        heap.blocks.erase(found);
-        ++heap.releases;
-    }
-    return next;
 }
-
 void Heap::release_all() noexcept {
-    for(const auto& [address, size] : blocks) {
-        (void)size;
-        std::free(reinterpret_cast<void*>(address));
-    }
-    blocks.clear();
+    region_.reset();
 }
-
+bool Heap::empty() const noexcept {
+    return !region_ || region_->empty();
+}
+std::vector<std::pair<std::uintptr_t, std::size_t>> Heap::blocks() const {
+    return region_ ? region_->blocks() : std::vector<std::pair<std::uintptr_t, std::size_t>>{};
+}
+HeapSnapshot Heap::snapshot() const {
+    if (!region_)
+        throw std::logic_error("cannot capture an empty Lua heap");
+    return {region_->snapshot(), allocations, releases};
+}
+void Heap::restore(const HeapSnapshot &snapshot) {
+    if (!region_)
+        throw std::logic_error("Lua checkpoint owner was released");
+    region_->restore(snapshot.bytes);
+    allocations = snapshot.allocations;
+    releases = snapshot.releases;
+}
 std::uint64_t Heap::fingerprint() const {
     std::uint64_t result = 1469598103934665603ULL;
-    for(const auto& [address, size] : blocks) {
-        auto bytes = reinterpret_cast<const unsigned char*>(address);
+    for (auto [address, size] : blocks()) {
         result ^= address;
         result *= 1099511628211ULL;
-        for(std::size_t i = 0; i < size; ++i) {
-            result ^= bytes[i];
+        for (std::size_t i = 0; i < size; ++i) {
+            result ^= reinterpret_cast<const unsigned char *>(address)[i];
             result *= 1099511628211ULL;
         }
     }
     return result;
 }
-}
+} // namespace ocg::lua_clone

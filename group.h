@@ -6,6 +6,7 @@
  */
 #ifndef GROUP_H_
 #define GROUP_H_
+#include "clone/memory/object_pool.h"
 
 #include <set>
 #include <vector>
@@ -18,6 +19,11 @@ class duel;
 
 class group : public lua_obj_helper<LuaParam::GROUP> {
 public:
+    static void* operator new(std::size_t size);
+    static void* operator new(std::size_t size,ocg::memory::ObjectPool& pool);
+    static void operator delete(void* pointer) noexcept;
+    static void operator delete(void* pointer,ocg::memory::ObjectPool& pool) noexcept;
+
 	card_set container;
 	card_set::iterator it;
 	bool is_readonly{ false };

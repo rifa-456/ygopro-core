@@ -28,6 +28,7 @@ class owned_lua;
 class duel_clone;
 class lua_obj {
 	friend class duel_clone;
+    friend class duel_checkpoint;
 	template<typename T>
 	friend class owned_lua;
 public:

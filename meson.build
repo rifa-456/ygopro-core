@@ -1,10 +1,11 @@
 project('ocgcore', 'cpp',
 	license : 'AGPL-3.0-or-later',
-	default_options : ['cpp_std=c++17', 'warning_level=3', 'cpp_rtti=false', 'backend_startup_project=ocgcore'],
+	default_options : ['cpp_std=c++17', 'warning_level=3', 'cpp_rtti=true', 'backend_startup_project=ocgcore'],
 	version : '11.0'
 )
 
 subdir('lua')
+boost_dep = dependency('boost', version : '==1.83.0')
 
 linker_args = []
 ocg_args = []
@@ -20,6 +21,22 @@ if host_machine.system() == 'darwin'
 endif
 
 ocgcore_src = files([
+    'clone.cpp',
+    'clone/random.cpp',
+    'clone/checkpoint/api.cpp',
+    'clone/checkpoint/capture.cpp',
+    'clone/checkpoint/restore.cpp',
+    'clone/memory/buffer.cpp',
+    'clone/memory/object_pool.cpp',
+    'clone/lua/heap.cpp',
+    'clone/lua/region.cpp',
+    'clone/lua/vm.cpp',
+    'clone/graph/duel.cpp',
+    'clone/graph/objects.cpp',
+    'clone/graph/field.cpp',
+    'clone/graph/vm.cpp',
+    'clone/profiling/metrics.cpp',
+
 	'card.cpp',
 	'duel.cpp',
 	'effect.cpp',
@@ -38,5 +55,5 @@ ocgcore_src = files([
 	'scriptlib.cpp',
 ])
 
-ocgcore_lib = library('ocgcore', ocgcore_src, cpp_args : ocg_args, link_args : linker_args, dependencies : lua_dep)
+ocgcore_lib = library('ocgcore', ocgcore_src, cpp_args : ocg_args, link_args : linker_args, dependencies : [lua_dep, boost_dep])
 ocgcore_dep = declare_dependency(include_directories : include_directories('./'), link_with : ocgcore_lib)

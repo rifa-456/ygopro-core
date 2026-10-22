@@ -8,6 +8,7 @@
 #define DUEL_H_
 
 #include <deque>
+#include <memory>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -42,10 +43,14 @@ struct card_data {
 	card_data() = default;
 };
 
+class duel_checkpoint;
 class duel_clone;
 class duel {
 	friend class duel_clone;
+    friend class duel_checkpoint;
 public:
+    ocg::memory::ObjectPool storage;
+    std::shared_ptr<int> checkpoint_identity=std::make_shared<int>(0);
 	class duel_message {
 	private:
 		template<typename T>
@@ -89,7 +94,7 @@ public:
 	template<typename... Args>
 	owned_lua<group> new_group(Args&&... args) {
 		auto pgroup = [&]() {
-			auto* pgroup = new group(this, std::forward<Args>(args)...);
+			auto* pgroup = new (storage) group(this, std::forward<Args>(args)...);
 			groups.insert(pgroup);
 			lua->register_group(pgroup);
 			return owned_lua<group>{pgroup};

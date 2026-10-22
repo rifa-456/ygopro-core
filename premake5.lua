@@ -3,7 +3,7 @@ if not externalincludedirs then
 	externalincludedirs = sysincludedirs
 end
 local ocgcore_config=function()
-	files { "*.h", "*.hpp", "*.cpp", "RNG/*.hpp", "RNG/*.cpp", "clone/graph/*.cpp", "clone/lua/*.cpp", "clone/profiling/*.cpp", "clone/**.h", "clone/**.inc" }
+	files { "*.h", "*.hpp", "*.cpp", "RNG/*.hpp", "RNG/*.cpp", "clone/graph/*.cpp", "clone/checkpoint/*.cpp", "clone/memory/*.cpp", "clone/random.cpp", "clone/lua/*.cpp", "clone/profiling/*.cpp", "clone/**.h", "clone/**.inc" }
 	warnings "Extra"
 	cppdialect "C++17"
 	rtti "Off"
@@ -19,6 +19,11 @@ local ocgcore_config=function()
 	filter { "system:macosx or ios", "files:processor_visit.cpp" }
 		buildoptions { "-fno-exceptions" }
 	filter {}
+	filter { "files:clone/lua/heap.cpp or clone/lua/region.cpp" }
+		rtti "On"
+	filter {}
+	local boost_root=os.getenv("BOOST_ROOT")
+	if boost_root then externalincludedirs { boost_root } end
 	links { "lua" }
 	externalincludedirs { "lua/src" }
 end
