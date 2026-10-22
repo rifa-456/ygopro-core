@@ -1,5 +1,12 @@
 include("${CMAKE_CURRENT_LIST_DIR}/dependencies.cmake")
 set(OCG_CLONE_SOURCES
+    "${CMAKE_CURRENT_LIST_DIR}/persistence/api.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/persistence/graph.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/persistence/objects.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/persistence/field.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/persistence/vm.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/persistence/values.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/persistence/image.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../clone.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/checkpoint/capture.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/checkpoint/restore.cpp"

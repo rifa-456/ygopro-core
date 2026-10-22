@@ -3,10 +3,13 @@ if not externalincludedirs then
 	externalincludedirs = sysincludedirs
 end
 local ocgcore_config=function()
-	files { "*.h", "*.hpp", "*.cpp", "RNG/*.hpp", "RNG/*.cpp", "clone/graph/*.cpp", "clone/checkpoint/*.cpp", "clone/memory/*.cpp", "clone/random.cpp", "clone/lua/*.cpp", "clone/profiling/*.cpp", "clone/**.h", "clone/**.inc" }
+	files { "*.h", "*.hpp", "*.cpp", "RNG/*.hpp", "RNG/*.cpp", "clone/graph/*.cpp", "clone/persistence/*.cpp", "clone/checkpoint/*.cpp", "clone/memory/*.cpp", "clone/random.cpp", "clone/lua/*.cpp", "clone/profiling/*.cpp", "clone/**.h", "clone/**.inc" }
 	warnings "Extra"
 	cppdialect "C++17"
 	rtti "Off"
+	filter "system:linux"
+		links { "dl" }
+	filter {}
 
 	filter "configurations:Release"
 		optimize "Speed"
