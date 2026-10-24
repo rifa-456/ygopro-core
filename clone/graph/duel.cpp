@@ -2,6 +2,11 @@
 #include "copy.h"
 
 void duel_clone::run() {
+    run_core();
+    copy_vm();
+}
+
+void duel_clone::run_core() {
     auto& d=destination;
     {
     OCG_PROFILE_SCOPE(OCG_PROFILE_CORE_SETUP);
@@ -14,7 +19,7 @@ void duel_clone::run() {
     copy_objects();
     copy_field();
     copy_metadata();
-    copy_vm();
+    copy_interpreter();
     d.last_status=source.last_status;
 }
 

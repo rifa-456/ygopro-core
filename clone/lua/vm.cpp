@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "vm.h"
 #include "../profiling/metrics.h"
+#include <algorithm>
 #include <cstring>
 #include <stdexcept>
+#include <tuple>
 #include "lfunc.h"
 #include "lgc.h"
 #include "ltable.h"
@@ -31,42 +33,37 @@ void* Clone::translate(const void* pointer) const {
     if(!pointer) return nullptr;
     auto address = reinterpret_cast<std::uintptr_t>(pointer);
     OCG_PROFILE_COUNT(OCG_PROFILE_LUA_TRANSLATIONS, 1);
-    auto next = blocks_.upper_bound(address);
-    if(next == blocks_.begin()) {
+    if(address - base_ > extent_) {
         if(dead_) return nullptr;
-        throw std::runtime_error("unmapped Lua pointer");
+        throw std::runtime_error("Lua pointer outside the tracked heap");
     }
-    const auto& [base, block] = *--next;
-    if(address - base > block.size) {
-        if(dead_) return nullptr;
-        throw std::runtime_error("Lua pointer outside tracked allocation");
-    }
-    return reinterpret_cast<void*>(block.destination + address - base);
+    return reinterpret_cast<void*>(address + delta_);
 }
 
 void* Clone::external(const void* pointer) const {
     OCG_PROFILE_COUNT(OCG_PROFILE_LUA_EXTERNAL_LOOKUPS, pointer ? 1 : 0);
     if(!pointer) return nullptr;
     auto address = reinterpret_cast<std::uintptr_t>(pointer);
-    auto next = blocks_.upper_bound(address);
-    if(next != blocks_.begin()) {
-        const auto& [base, block] = *--next;
-        if(address - base <= block.size) return translate(pointer);
-    }
+    if(address - base_ <= extent_) return translate(pointer);
     return hooks_.external ? hooks_.external(pointer) : const_cast<void*>(pointer);
 }
 
 void Clone::collect(GCObject* first) {
-    for(auto* object = first; object; object = object->next) {
-        if(!objects_.insert(object).second) throw std::runtime_error("overlapping GC ownership lists");
-    }
+    for(auto* object = first; object; object = object->next) objects_.push_back(object);
+}
+
+void Clone::index_objects() {
+    std::sort(objects_.begin(), objects_.end());
+    if(std::adjacent_find(objects_.begin(), objects_.end()) != objects_.end())
+        throw std::runtime_error("overlapping GC ownership lists");
 }
 
 void Clone::collect_gray(GCObject* first) {
     std::unordered_set<GCObject*> seen;
     for(auto* object = first; object; object = *gray_link(object)) {
         if(!seen.insert(object).second) throw std::runtime_error("cyclic gray list");
-        if(objects_.find(object) == objects_.end()) throw std::runtime_error("unowned gray object");
+        if(!std::binary_search(objects_.begin(), objects_.end(), object))
+            throw std::runtime_error("unowned gray object");
         gray_.insert(object);
     }
 }
@@ -253,6 +250,7 @@ lua_State* Clone::run(lua_State* source) {
     OCG_PROFILE_SCOPE(OCG_PROFILE_LUA_COLLECT);
     collect(global->allgc); collect(global->finobj);
     collect(global->tobefnz); collect(global->fixedgc);
+    index_objects();
     for(auto* object : objects_)
         if(object->tt == LUA_VTHREAD && gco2th(object)->errorJmp)
             throw std::runtime_error("clone boundary contains executing Lua thread");
@@ -265,14 +263,11 @@ lua_State* Clone::run(lua_State* source) {
     try {
         {
         OCG_PROFILE_SCOPE(OCG_PROFILE_LUA_COPY);
-        for(const auto& [address, size] : source_.blocks()) {
-            void* output = Heap::allocate(&destination_, nullptr, 0, size);
-            if(!output) throw std::bad_alloc();
-            OCG_PROFILE_COUNT(OCG_PROFILE_LUA_BLOCKS, 1);
-            OCG_PROFILE_COUNT(OCG_PROFILE_LUA_BYTES, size);
-            std::memcpy(output, reinterpret_cast<const void*>(address), size);
-            blocks_.emplace(address, Block{size, reinterpret_cast<std::uintptr_t>(output)});
-        }
+        destination_.copy(source_);
+        std::tie(base_, extent_) = source_.extent();
+        delta_ = destination_.extent().first - base_;
+        OCG_PROFILE_COUNT(OCG_PROFILE_LUA_BLOCKS, 1);
+        OCG_PROFILE_COUNT(OCG_PROFILE_LUA_BYTES, extent_);
         }
         {
         OCG_PROFILE_SCOPE(OCG_PROFILE_LUA_FIX);

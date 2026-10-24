@@ -2,8 +2,8 @@
 #pragma once
 #include "heap.h"
 #include <functional>
-#include <map>
 #include <unordered_set>
+#include <vector>
 #include "lua.h"
 #include "lstate.h"
 #if !defined(LUA_OCG_CLONE_ABI) || LUA_OCG_CLONE_ABI != 1
@@ -27,18 +27,20 @@ public:
     std::size_t object_count() const { return objects_.size(); }
 
 private:
-    struct Block { std::size_t size; std::uintptr_t destination; };
     const Heap& source_;
     Heap& destination_;
     Hooks hooks_;
     global_State* global_ = nullptr;
     bool dead_ = false;
-    std::map<std::uintptr_t, Block> blocks_;
-    std::unordered_set<GCObject*> objects_;
+    std::uintptr_t base_ = 0;
+    std::size_t extent_ = 0;
+    std::uintptr_t delta_ = 0;
+    std::vector<GCObject*> objects_;
     std::unordered_set<GCObject*> gray_;
     void* translate(const void* pointer) const;
     void* external(const void* pointer) const;
     void collect(GCObject* first);
+    void index_objects();
     void collect_gray(GCObject* first);
     void fix_global(global_State* source);
     void fix_object(GCObject* source);

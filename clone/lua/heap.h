@@ -24,6 +24,8 @@ class Heap {
     static void *allocate(void *opaque, void *previous, std::size_t old_size,
                           std::size_t size) noexcept;
     void release_all() noexcept;
+    void copy(const Heap &source);
+    std::pair<std::uintptr_t, std::size_t> extent() const noexcept;
     bool empty() const noexcept;
     std::vector<std::pair<std::uintptr_t, std::size_t>> blocks() const;
     HeapSnapshot snapshot() const;

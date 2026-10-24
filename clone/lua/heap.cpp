@@ -33,6 +33,17 @@ void *Heap::allocate(void *opaque, void *previous, std::size_t, std::size_t size
 void Heap::release_all() noexcept {
     region_.reset();
 }
+void Heap::copy(const Heap &source) {
+    if (!source.region_)
+        throw std::logic_error("cannot copy an empty Lua heap");
+    region_ = std::make_unique<Region>(*source.region_);
+    allocations = source.allocations;
+    releases = source.releases;
+}
+std::pair<std::uintptr_t, std::size_t> Heap::extent() const noexcept {
+    return region_ ? std::make_pair(region_->base(), region_->extent())
+                   : std::make_pair(std::uintptr_t{}, std::size_t{});
+}
 bool Heap::empty() const noexcept {
     return !region_ || region_->empty();
 }

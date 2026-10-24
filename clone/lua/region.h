@@ -10,12 +10,15 @@ namespace ocg::lua_clone {
 class Region {
   public:
     explicit Region(std::size_t capacity);
+    Region(const Region &source);
     void *resize(void *pointer, std::size_t size);
     void release(void *pointer) noexcept;
     std::vector<std::pair<std::uintptr_t, std::size_t>> blocks() const;
     std::vector<unsigned char> snapshot() const;
     void restore(const std::vector<unsigned char> &bytes);
     bool empty() const noexcept;
+    std::uintptr_t base() const noexcept;
+    std::size_t extent() const noexcept;
 
   private:
     static constexpr std::size_t quantum = 64u * 1024u;

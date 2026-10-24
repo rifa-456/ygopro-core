@@ -125,11 +125,13 @@ class duel_clone {
     void copy_objects();
     void copy_field();
     void copy_vm();
+    void copy_interpreter();
     void copy_metadata();
 public:
     static void reseed(duel& branch,uint64_t seed);
     static void reseed_core(duel& branch, uint64_t seed);
     duel_clone(duel& s, duel& d):source(s),destination(d) {}
     void run();
+    void run_core();
     static int create(OCG_Duel* output, duel& source, const OCG_CloneCallbacks& callbacks);
 };

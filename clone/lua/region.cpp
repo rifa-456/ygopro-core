@@ -16,6 +16,20 @@ Region::Region(std::size_t capacity) : buffer_(capacity) {
     auto *value = ::new (segment_.allocate(sizeof(State))) State{};
     state_offset_ = offset(value);
 }
+Region::Region(const Region &source) : buffer_(source.buffer_.capacity()) {
+    const auto size = source.extent();
+    buffer_.commit(size);
+    std::memcpy(buffer_.data(), source.buffer_.data(), size);
+    segment_ = boost::interprocess::managed_external_buffer(boost::interprocess::open_only,
+                                                            buffer_.data(), size);
+    state_offset_ = source.state_offset_;
+}
+std::uintptr_t Region::base() const noexcept {
+    return reinterpret_cast<std::uintptr_t>(buffer_.data());
+}
+std::size_t Region::extent() const noexcept {
+    return segment_.get_size();
+}
 std::size_t Region::offset(const void *pointer) const noexcept {
     return static_cast<const unsigned char *>(pointer) -
            static_cast<const unsigned char *>(buffer_.data());

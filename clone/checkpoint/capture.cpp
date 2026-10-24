@@ -21,10 +21,7 @@ duel_checkpoint::duel_checkpoint(duel &owner)
     saved.read_card_done_callback = owner.read_card_done_callback;
     saved.read_card_done_payload = owner.read_card_done_payload;
     duel_clone capture(owner, saved);
-    capture.run();
-    saved.lua->lua_state = nullptr;
-    saved.lua->current_state = nullptr;
-    saved.lua->heap.release_all();
+    capture.run_core();
     copier_ = std::make_unique<duel_clone>(saved, owner);
     std::unordered_map<const void *, const void *> roots;
     for (auto [original, copy] : capture.objects) {

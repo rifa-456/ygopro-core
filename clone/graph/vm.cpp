@@ -34,6 +34,11 @@ void duel_clone::copy_vm() {
     d.current_state=clone.mapped(s.current_state);
     for(const auto& [key,value]:s.coroutines)
         d.coroutines.emplace(key,std::make_pair(clone.mapped(value.first),value.second));
+}
+
+void duel_clone::copy_interpreter() {
+    auto& s=*source.lua;
+    auto& d=*destination.lua;
     for(const auto& [value,type]:s.params) {
         auto next=value;
         switch(type) {
