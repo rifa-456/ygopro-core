@@ -23,10 +23,12 @@ LOCAL_SRC_FILES := clone.cpp \
                 clone/profiling/metrics.cpp \
                 clone/graph/duel.cpp \
                 clone/graph/objects.cpp \
+                clone/graph/references.cpp \
                 clone/graph/field.cpp \
                 clone/graph/vm.cpp \
                 clone/lua/heap.cpp \
                 clone/lua/vm.cpp \
+                identity/reidentify.cpp \
                 card.cpp \
 				duel.cpp \
 				effect.cpp \

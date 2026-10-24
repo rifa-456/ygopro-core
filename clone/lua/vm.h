@@ -31,6 +31,8 @@ private:
     const Heap& source_;
     Heap& destination_;
     Hooks hooks_;
+    global_State* global_ = nullptr;
+    bool dead_ = false;
     std::map<std::uintptr_t, Block> blocks_;
     std::unordered_set<GCObject*> objects_;
     std::unordered_set<GCObject*> gray_;

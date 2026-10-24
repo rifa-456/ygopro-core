@@ -18,6 +18,7 @@ set(OCG_CLONE_SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/random.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/graph/duel.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/graph/objects.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/graph/references.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/graph/field.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/graph/vm.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/lua/heap.cpp"

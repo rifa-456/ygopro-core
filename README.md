@@ -1,7 +1,7 @@
 > [!NOTE]
 > This repository is a fork of Project Ignis's ygopro-core used as the engine backend for YGO Gym.
 > 
-> Changes in this fork focus on features needed for research use, including state cloning and serialization. Upstream updates from Project Ignis are incorporated as the backend evolves.
+> Changes in this fork focus on features needed for research use, including state cloning, serialization and re-identifying hidden cards. Upstream updates from Project Ignis are incorporated as the backend evolves.
 
 # YGOPro script engine.
 

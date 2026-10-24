@@ -11,6 +11,7 @@
 #include "effect.h"
 #include "field.h"
 #include "interpreter.h"
+#include "clone/graph/references.h"
 
 duel::duel(const OCG_DuelOptions& options, bool& valid_lua_lib) :
 	random({ options.seed[0], options.seed[1], options.seed[2], options.seed[3] }),
@@ -105,6 +106,7 @@ void duel::delete_group(group* pgroup) {
 	delete pgroup;
 }
 void duel::delete_effect(effect* peffect) {
+	ocg::graph::release_effect(*this, peffect);
 	lua->unregister_effect(peffect);
 	effects.erase(peffect);
 	delete peffect;

@@ -38,6 +38,9 @@ OCGAPI void OCG_DestroyCheckpoint(OCG_Checkpoint checkpoint);
    A failed reconstruction invalidates the duel; only destruction is then supported. */
 OCGAPI int OCG_RestoreCheckpoint(OCG_Duel owner, OCG_Checkpoint checkpoint);
 OCGAPI int OCG_RestoreCheckpointWithSeed(OCG_Duel owner, OCG_Checkpoint checkpoint, uint64_t seed);
+/* Give a card in a deck or hand, or a face-down card, the identity and initial effects of another card.
+   Only at AWAITING; effects the card registered outside itself are left in place. */
+OCGAPI int OCG_ReidentifyCard(OCG_Duel duel, uint8_t controller, uint32_t location, uint32_t sequence, uint32_t code);
 OCGAPI int OCG_CloneProfileEnabled(void);
 OCGAPI int OCG_CloneProfileBegin(void);
 OCGAPI int OCG_CloneProfileEnd(OCG_CloneProfileRecord* output);

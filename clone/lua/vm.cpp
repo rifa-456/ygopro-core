@@ -32,9 +32,15 @@ void* Clone::translate(const void* pointer) const {
     auto address = reinterpret_cast<std::uintptr_t>(pointer);
     OCG_PROFILE_COUNT(OCG_PROFILE_LUA_TRANSLATIONS, 1);
     auto next = blocks_.upper_bound(address);
-    if(next == blocks_.begin()) throw std::runtime_error("unmapped Lua pointer");
+    if(next == blocks_.begin()) {
+        if(dead_) return nullptr;
+        throw std::runtime_error("unmapped Lua pointer");
+    }
     const auto& [base, block] = *--next;
-    if(address - base > block.size) throw std::runtime_error("Lua pointer outside tracked allocation");
+    if(address - base > block.size) {
+        if(dead_) return nullptr;
+        throw std::runtime_error("Lua pointer outside tracked allocation");
+    }
     return reinterpret_cast<void*>(block.destination + address - base);
 }
 
@@ -189,7 +195,9 @@ void Clone::fix_thread(lua_State* source) {
 }
 
 void Clone::fix_object(GCObject* source) {
+    dead_ = false;
     auto* result = mapped(source);
+    dead_ = issweepphase(global_) && isdead(global_, source);
     result->next = mapped(source->next);
     switch(source->tt) {
     case LUA_VSHRSTR:
@@ -232,6 +240,7 @@ void Clone::fix_object(GCObject* source) {
         source->tt == LUA_VCCL || source->tt == LUA_VPROTO || source->tt == LUA_VTHREAD ||
         (source->tt == LUA_VUSERDATA && gco2u(source)->nuvalue != 0);
     if(has_gray_link) *gray_link(result) = gray_.find(source) != gray_.end() ? mapped(*gray_link(source)) : nullptr;
+    dead_ = false;
 }
 
 lua_State* Clone::run(lua_State* source) {
@@ -239,6 +248,7 @@ lua_State* Clone::run(lua_State* source) {
     if(source->l_G->frealloc != Heap::allocate || source->l_G->ud != &source_)
         throw std::runtime_error("source must use the tracked allocator");
     auto* global = G(source);
+    global_ = global;
     {
     OCG_PROFILE_SCOPE(OCG_PROFILE_LUA_COLLECT);
     collect(global->allgc); collect(global->finobj);

@@ -44,9 +44,11 @@ ocgcore_src = files([
     'clone/lua/vm.cpp',
     'clone/graph/duel.cpp',
     'clone/graph/objects.cpp',
+    'clone/graph/references.cpp',
     'clone/graph/field.cpp',
     'clone/graph/vm.cpp',
     'clone/profiling/metrics.cpp',
+    'identity/reidentify.cpp',
 
 	'card.cpp',
 	'duel.cpp',
