@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "archive.h"
 #include "vm.h"
+#include "../groups/cursor.h"
 duel_archive::duel_archive(duel &value, std::vector<unsigned char> &data, bool reading)
     : duel_(value), stream_(data, reading) {}
 void duel_archive::register_object(void *value) {
@@ -94,11 +95,9 @@ void duel_archive::objects() {
         io(v->container);
         io(v->is_readonly);
         io(v->is_iterator_dirty);
-        card *cursor = (!stream_.reading && !v->is_iterator_dirty && v->it != v->container.end())
-                           ? *v->it
-                           : nullptr;
+        card *cursor = stream_.reading ? nullptr : ocg::groups::cursor(*v);
         io(cursor);
-        if (stream_.reading && !v->is_iterator_dirty)
+        if (stream_.reading)
             v->it = cursor ? v->container.find(cursor) : v->container.end();
     }
 }

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "copy.h"
+#include "../groups/cursor.h"
 
 void duel_clone::allocate_objects() {
     OCG_PROFILE_SCOPE(OCG_PROFILE_CORE_ALLOCATE);
@@ -144,6 +145,7 @@ void duel_clone::copy_objects() {
         copy(d->container,s->container);
         d->is_readonly=s->is_readonly;
         d->is_iterator_dirty=s->is_iterator_dirty;
-        if(!s->is_iterator_dirty) d->it=s->it==s->container.end() ? d->container.end() : d->container.find(mapped(*s->it));
+        auto* at=ocg::groups::cursor(*s);
+        d->it=at ? d->container.find(mapped(at)) : d->container.end();
     }
 }
