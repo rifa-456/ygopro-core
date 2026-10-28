@@ -16,10 +16,9 @@ void VmArchive::rehash() {
         bool needed = false;
         for (unsigned i = 0; i < sizenode(table); ++i) {
             auto *node = &table->node[i];
-            if (!isempty(gval(node)) &&
-                ((keyiscollectable(node) && keytt(node) != LUA_VSHRSTR &&
-                  keytt(node) != LUA_VLNGSTR) ||
-                 keytt(node) == LUA_VLIGHTUSERDATA || keytt(node) == LUA_VLCF))
+            // Collectable keys hash by their clone_hash, which a load keeps; light userdata and light C functions
+            // hash by address, which a load changes. Rehashing reorders a table, so only those tables are.
+            if (!isempty(gval(node)) && (keytt(node) == LUA_VLIGHTUSERDATA || keytt(node) == LUA_VLCF))
                 needed = true;
         }
         if (needed) {
