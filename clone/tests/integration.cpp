@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 #include <thread>
 #include "support/duel_fixture.h"
 using namespace ocg::test;

@@ -30,17 +30,30 @@ OCGAPI void OCG_GetVersion(int* major, int* minor);
 
 /*** DUEL CREATION AND DESTRUCTION ***/
 OCGAPI int OCG_CreateDuel(OCG_Duel* out_ocg_duel, const OCG_DuelOptions* options_ptr);
+/*** CLONING, CHECKPOINTS AND RE-IDENTIFICATION (YGO-Gym's fork) ***
+   Every function here works on a duel waiting for a response (OCG_DUEL_STATUS_AWAITING) and returns a
+   status from ocgapi_types.h. Different duels may be used from different threads at once; one duel, and the
+   checkpoints of one duel, from one thread at a time. */
+/* A copy of an awaiting duel that plays on exactly as the source would, its random state included. The copy
+   is a duel of its own: destroy it with OCG_DestroyDuel. The callbacks are the copy's, as in OCG_DuelOptions. */
 OCGAPI int OCG_CloneDuel(OCG_Duel* output, OCG_Duel source, const OCG_CloneCallbacks* callbacks);
+/* The same, with the engine's random state and Lua's math.random both reseeded from seed. */
 OCGAPI int OCG_CloneDuelWithSeed(OCG_Duel* output, OCG_Duel source, const OCG_CloneCallbacks* callbacks, uint64_t seed);
+/* Capture an awaiting duel to restore later. The checkpoint belongs to its duel: destroy it with
+   OCG_DestroyCheckpoint, before or after the duel. */
 OCGAPI int OCG_CreateCheckpoint(OCG_Checkpoint* output, OCG_Duel owner);
 OCGAPI void OCG_DestroyCheckpoint(OCG_Checkpoint checkpoint);
-/* Capture at AWAITING. Restore only to the originating, quiescent duel.
-   A failed reconstruction invalidates the duel; only destruction is then supported. */
+/* Return the duel that captured the checkpoint to that moment; it must be awaiting or ended. A checkpoint can be
+   restored any number of times. A failed reconstruction invalidates the duel; only destruction is then
+   supported. */
 OCGAPI int OCG_RestoreCheckpoint(OCG_Duel owner, OCG_Checkpoint checkpoint);
+/* The same, with the random state reseeded from seed instead of the captured one. */
 OCGAPI int OCG_RestoreCheckpointWithSeed(OCG_Duel owner, OCG_Checkpoint checkpoint, uint64_t seed);
 /* Give a card in a deck or hand, or a face-down card, the identity and initial effects of another card.
-   Only at AWAITING; effects the card registered outside itself are left in place. */
+   Effects the card registered outside itself are left in place. After OCG_IDENTITY_FAILED or
+   OCG_IDENTITY_ALLOCATION_FAILED the card may be half changed: restore a checkpoint or destroy the duel. */
 OCGAPI int OCG_ReidentifyCard(OCG_Duel duel, uint8_t controller, uint32_t location, uint32_t sequence, uint32_t code);
+/* Timers and counters of the cloning phases, compiled in with OCG_CLONE_PROFILING; Enabled is 0 without. */
 OCGAPI int OCG_CloneProfileEnabled(void);
 OCGAPI int OCG_CloneProfileBegin(void);
 OCGAPI int OCG_CloneProfileEnd(OCG_CloneProfileRecord* output);

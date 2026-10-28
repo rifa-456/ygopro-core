@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// Every member is copied here or skipped on purpose; persistence reads these lists too. After an upstream update
+// adds a member, add it: a missing member is not copied, and the clone silently plays a different game.
 void copy(card_state& d, const card_state& s) {
     copy(d.code, s.code);
     copy(d.code2, s.code2);
