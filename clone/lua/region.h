@@ -10,8 +10,10 @@
 #include <cstdint>
 #include <vector>
 namespace ocg::lua_clone {
-// managed_external_buffer with a null mutex: one thread uses a duel's heap at a time, and cloning copies the
-// segment byte for byte, which a real mutex does not allow.
+/**
+ * managed_external_buffer with a null mutex: one thread uses a duel's heap at a time, and cloning copies the segment
+ * byte for byte, which a real mutex does not allow.
+ */
 using Segment = boost::interprocess::basic_managed_external_buffer<
     char, boost::interprocess::rbtree_best_fit<boost::interprocess::null_mutex_family>,
     boost::interprocess::iset_index>;
