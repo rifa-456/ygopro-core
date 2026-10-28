@@ -16,7 +16,13 @@ Buffer::Buffer(std::size_t capacity) : capacity_(capacity) {
     if (!data_)
         throw std::bad_alloc();
 #else
-    data_ = mmap(nullptr, capacity, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    // Only the pages the heap touches use memory, so the reservation must not count against the commit limit
+    // either: with strict overcommit a 256 MiB reservation per duel would fail after a few duels.
+    int flags = MAP_PRIVATE | MAP_ANONYMOUS;
+#if defined(MAP_NORESERVE)
+    flags |= MAP_NORESERVE;
+#endif
+    data_ = mmap(nullptr, capacity, PROT_READ | PROT_WRITE, flags, -1, 0);
     if (data_ == MAP_FAILED) {
         data_ = nullptr;
         throw std::bad_alloc();
