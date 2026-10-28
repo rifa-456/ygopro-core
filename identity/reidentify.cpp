@@ -82,10 +82,14 @@ int OCG_ReidentifyCard(OCG_Duel ocg_duel, uint8_t controller, uint32_t location,
         return OCG_IDENTITY_NOT_HIDDEN;
     if(pduel.read_card(code).code != code)
         return OCG_IDENTITY_UNKNOWN_CODE;
+    // No exception may cross the C API. After a failure the card may be half re-identified, so the host must
+    // treat the duel as broken.
     try {
         reidentify(pduel, *target, code);
     } catch(const std::bad_alloc&) {
         return OCG_IDENTITY_ALLOCATION_FAILED;
+    } catch(...) {
+        return OCG_IDENTITY_FAILED;
     }
     pduel.last_status = OCG_DUEL_STATUS_AWAITING;
     return OCG_IDENTITY_SUCCESS;
