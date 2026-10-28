@@ -2,11 +2,19 @@
 #pragma once
 #include "../memory/buffer.h"
 #include <array>
+#include <boost/interprocess/indexes/iset_index.hpp>
 #include <boost/interprocess/managed_external_buffer.hpp>
+#include <boost/interprocess/mem_algo/rbtree_best_fit.hpp>
+#include <boost/interprocess/sync/mutex_family.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
 namespace ocg::lua_clone {
+// managed_external_buffer with a null mutex: one thread uses a duel's heap at a time, and cloning copies the
+// segment byte for byte, which a real mutex does not allow.
+using Segment = boost::interprocess::basic_managed_external_buffer<
+    char, boost::interprocess::rbtree_best_fit<boost::interprocess::null_mutex_family>,
+    boost::interprocess::iset_index>;
 class Region {
   public:
     explicit Region(std::size_t capacity);
@@ -32,7 +40,7 @@ class Region {
         std::size_t live{}, count{};
     };
     ocg::memory::Buffer buffer_;
-    boost::interprocess::managed_external_buffer segment_;
+    Segment segment_;
     std::size_t state_offset_{};
     State &state() const noexcept;
     std::size_t offset(const void *pointer) const noexcept;

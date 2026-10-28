@@ -11,8 +11,7 @@ Region::Region(std::size_t capacity) : buffer_(capacity) {
     if (initial < quantum)
         throw std::invalid_argument("Lua reserve is smaller than 64 KiB");
     buffer_.commit(initial);
-    segment_ = boost::interprocess::managed_external_buffer(boost::interprocess::create_only,
-                                                            buffer_.data(), initial);
+    segment_ = Segment(boost::interprocess::create_only, buffer_.data(), initial);
     auto *value = ::new (segment_.allocate(sizeof(State))) State{};
     state_offset_ = offset(value);
 }
@@ -20,8 +19,7 @@ Region::Region(const Region &source) : buffer_(source.buffer_.capacity()) {
     const auto size = source.extent();
     buffer_.commit(size);
     std::memcpy(buffer_.data(), source.buffer_.data(), size);
-    segment_ = boost::interprocess::managed_external_buffer(boost::interprocess::open_only,
-                                                            buffer_.data(), size);
+    segment_ = Segment(boost::interprocess::open_only, buffer_.data(), size);
     state_offset_ = source.state_offset_;
 }
 std::uintptr_t Region::base() const noexcept {
