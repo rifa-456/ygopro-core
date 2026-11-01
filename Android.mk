@@ -29,6 +29,7 @@ LOCAL_SRC_FILES := clone.cpp \
                 clone/lua/heap.cpp \
                 clone/lua/vm.cpp \
                 identity/reidentify.cpp \
+                randomness/results.cpp \
                 card.cpp \
 				duel.cpp \
 				effect.cpp \

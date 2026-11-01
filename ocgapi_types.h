@@ -134,4 +134,16 @@ typedef enum {
     OCG_IDENTITY_ALLOCATION_FAILED=6,
     OCG_IDENTITY_FAILED=7
 } OCG_IdentityStatus;
+typedef struct OCG_RandomResult {
+    int32_t low;
+    int32_t high;
+    int32_t result;
+    uint32_t forced;
+} OCG_RandomResult;
+typedef enum {
+    OCG_RANDOM_SUCCESS=0,
+    OCG_RANDOM_INVALID_ARGUMENT=1,
+    OCG_RANDOM_ALLOCATION_FAILED=2,
+    OCG_RANDOM_REFUSED=3
+} OCG_RandomStatus;
 #endif

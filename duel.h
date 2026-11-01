@@ -20,6 +20,7 @@
 #include "lua_obj.h"
 #include "ocgapi_types.h"
 #include "RNG/Xoshiro256.hpp"
+#include "randomness/results.h"
 
 class card;
 class effect;
@@ -72,6 +73,7 @@ public:
 	bool clone_constructing = false;
 	bool has_ended = false;
 	int last_status = -1;
+	duel_random_results random_results;
 	std::vector<uint8_t> buff;
 	std::vector<uint8_t> query_buffer;
 	field* game_field{};

@@ -115,6 +115,14 @@ void duel_archive::metadata() {
     for (auto &message : d.messages)
         io(message.data);
     stream_.scalar(d.random);
+    io(d.random_results.forced);
+    auto recorded = stream_.count(d.random_results.recorded.size());
+    if (stream_.reading)
+        d.random_results.recorded.resize(recorded);
+    for (auto &result : d.random_results.recorded)
+        stream_.scalar(result);
+    io(d.random_results.recording);
+    io(d.random_results.refused);
     io(d.has_ended);
     io(d.last_status);
 }

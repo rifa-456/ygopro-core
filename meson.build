@@ -49,6 +49,7 @@ ocgcore_src = files([
     'clone/graph/vm.cpp',
     'clone/profiling/metrics.cpp',
     'identity/reidentify.cpp',
+    'randomness/results.cpp',
 
 	'card.cpp',
 	'duel.cpp',

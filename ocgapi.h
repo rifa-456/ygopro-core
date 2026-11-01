@@ -30,10 +30,10 @@ OCGAPI void OCG_GetVersion(int* major, int* minor);
 
 /*** DUEL CREATION AND DESTRUCTION ***/
 OCGAPI int OCG_CreateDuel(OCG_Duel* out_ocg_duel, const OCG_DuelOptions* options_ptr);
-/*** CLONING, CHECKPOINTS AND RE-IDENTIFICATION (YGO-Gym's fork) ***
-   Every function here works on a duel waiting for a response (OCG_DUEL_STATUS_AWAITING) and returns a
-   status from ocgapi_types.h. Different duels may be used from different threads at once; one duel, and the
-   checkpoints of one duel, from one thread at a time. */
+/*** CLONING, CHECKPOINTS, RE-IDENTIFICATION AND RANDOM RESULTS (YGO-Gym's fork) ***
+   Every function here returns a status from ocgapi_types.h, and all but the random results work on a duel
+   waiting for a response (OCG_DUEL_STATUS_AWAITING). Different duels may be used from different threads at
+   once; one duel, and the checkpoints of one duel, from one thread at a time. */
 /* A copy of an awaiting duel that plays on exactly as the source would, its random state included. The copy
    is a duel of its own: destroy it with OCG_DestroyDuel. The callbacks are the copy's, as in OCG_DuelOptions. */
 OCGAPI int OCG_CloneDuel(OCG_Duel* output, OCG_Duel source, const OCG_CloneCallbacks* callbacks);
@@ -53,6 +53,16 @@ OCGAPI int OCG_RestoreCheckpointWithSeed(OCG_Duel owner, OCG_Checkpoint checkpoi
    Effects the card registered outside itself are left in place. After OCG_IDENTITY_FAILED or
    OCG_IDENTITY_ALLOCATION_FAILED the card may be half changed: restore a checkpoint or destroy the duel. */
 OCGAPI int OCG_ReidentifyCard(OCG_Duel duel, uint8_t controller, uint32_t location, uint32_t sequence, uint32_t code);
+/* Every random event (a shuffle, a coin, a die, a random pick) draws its results one at a time. Give the duel's
+   next draws these results, in order: each draw takes the next one instead of the random state, which does not
+   advance. Results already given and not yet drawn come first. A result outside the range its draw asks for is
+   refused: that draw and the later ones use the random state, the results left are dropped, and
+   OCG_DuelGetRandomResults returns OCG_RANDOM_REFUSED from then on. Allowed before OCG_StartDuel. */
+OCGAPI int OCG_DuelForceRandomResults(OCG_Duel duel, const int32_t* results, uint32_t count);
+/* Record every draw from now on, forced or not: its range and its result. Allowed before OCG_StartDuel. */
+OCGAPI int OCG_DuelRecordRandomResults(OCG_Duel duel);
+/* Copy the first draws recorded, up to capacity, into output, oldest first, and set count to how many there are. */
+OCGAPI int OCG_DuelGetRandomResults(OCG_Duel duel, OCG_RandomResult* output, uint32_t capacity, uint32_t* count);
 /* Timers and counters of the cloning phases, compiled in with OCG_CLONE_PROFILING; Enabled is 0 without. */
 OCGAPI int OCG_CloneProfileEnabled(void);
 OCGAPI int OCG_CloneProfileBegin(void);

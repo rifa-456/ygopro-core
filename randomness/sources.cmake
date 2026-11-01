@@ -1,0 +1,3 @@
+set(OCG_RANDOMNESS_SOURCES
+    "${CMAKE_CURRENT_LIST_DIR}/results.cpp"
+)

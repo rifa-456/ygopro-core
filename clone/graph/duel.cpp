@@ -53,4 +53,5 @@ void duel_clone::copy_metadata() {
     copy(d.assumes,source.assumes);copy(d.uncopy,source.uncopy);
     d.data_cache=source.data_cache;d.buff=source.buff;d.query_buffer=source.query_buffer;
     d.messages=source.messages;d.random=source.random;d.has_ended=source.has_ended;
+    d.random_results=source.random_results;
 }
