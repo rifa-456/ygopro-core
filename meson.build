@@ -50,6 +50,7 @@ ocgcore_src = files([
     'clone/profiling/metrics.cpp',
     'identity/reidentify.cpp',
     'randomness/results.cpp',
+    'randomness/deck_shuffles.cpp',
 
 	'card.cpp',
 	'duel.cpp',

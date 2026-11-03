@@ -957,6 +957,7 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 		if(location == LOCATION_EXTRA)
 			upper_bound -= player[playerid].extra_p_count;
 		if(upper_bound > 1) {
+			if(location == LOCATION_DECK) pduel->forced_shuffles.prepare(*pduel, playerid, to_shuffle);
 			for(int32_t i = 0; i < upper_bound - 1; ++i) {
 				auto r = pduel->get_next_integer(i, upper_bound - 1);
 				auto* t = to_shuffle[i];

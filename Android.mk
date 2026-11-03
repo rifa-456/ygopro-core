@@ -30,6 +30,7 @@ LOCAL_SRC_FILES := clone.cpp \
                 clone/lua/vm.cpp \
                 identity/reidentify.cpp \
                 randomness/results.cpp \
+                randomness/deck_shuffles.cpp \
                 card.cpp \
 				duel.cpp \
 				effect.cpp \
