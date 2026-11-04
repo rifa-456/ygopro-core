@@ -317,7 +317,7 @@ LUA_FUNCTION(RandomSelect) {
 		newgroup->container = self->container;
 	else {
 		while(newgroup->container.size() < count) {
-			int32_t i = pduel->get_next_integer(0, (int32_t)self->container.size() - 1);
+			int32_t i = pduel->random_results.pick(*pduel, self->container, newgroup->container);
 			auto cit = self->container.begin();
 			std::advance(cit, i);
 			newgroup->container.insert(*cit);

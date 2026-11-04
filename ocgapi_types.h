@@ -134,6 +134,12 @@ typedef enum {
     OCG_IDENTITY_ALLOCATION_FAILED=6,
     OCG_IDENTITY_FAILED=7
 } OCG_IdentityStatus;
+typedef enum {
+    OCG_DRAW_OTHER=0,
+    OCG_DRAW_COIN=1,
+    OCG_DRAW_DIE=2,
+    OCG_DRAW_CARD=3
+} OCG_DrawKind;
 typedef struct OCG_RandomResult {
     int32_t low;
     int32_t high;
@@ -141,6 +147,9 @@ typedef struct OCG_RandomResult {
     uint32_t forced;
     /* Nonzero for a chance draw, one outside any shuffle: a coin, a die or a random pick. */
     uint32_t chance;
+    /* What the draw was for, an OCG_DrawKind: a coin toss, a die roll, a random pick of a card (its result the
+       picked card's place among the cards it was picked from), or another draw, as a shuffle's. */
+    uint32_t kind;
 } OCG_RandomResult;
 typedef enum {
     OCG_RANDOM_SUCCESS=0,

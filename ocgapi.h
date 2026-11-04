@@ -64,8 +64,19 @@ OCGAPI int OCG_DuelForceRandomResults(OCG_Duel duel, const int32_t* results, uin
    Results already given and not yet drawn come first; a result outside its draw's range is refused as there.
    Allowed before OCG_StartDuel. */
 OCGAPI int OCG_DuelForceChanceResults(OCG_Duel duel, const int32_t* results, uint32_t count);
-/* Record every draw from now on, forced or not: its range, its result and whether it was a chance draw. Allowed
-   before OCG_StartDuel. */
+/* Make the duel's next coin tosses take these results, 1 for heads, or its next die rolls these, replacing any left:
+   a toss or a roll takes the next one of its kind unless a chance result is forced ahead of it. A result outside its
+   draw's range is refused as there. Allowed before OCG_StartDuel. */
+OCGAPI int OCG_DuelForceCoinResults(OCG_Duel duel, const int32_t* results, uint32_t count);
+OCGAPI int OCG_DuelForceDieResults(OCG_Duel duel, const int32_t* results, uint32_t count);
+/* Make the duel's next random picks of cards take these cards, by code, replacing any left: a pick takes the first
+   card queued that the cards it picks from hold and that it has not picked already, and leaves the others queued;
+   with none of them, or a chance result forced ahead of it, it draws as any draw does. A queued card is taken once.
+   The pick is recorded as a forced draw of the picked card's place among the cards picked from. Allowed before
+   OCG_StartDuel. */
+OCGAPI int OCG_DuelForceRandomCards(OCG_Duel duel, const uint32_t* codes, uint32_t count);
+/* Record every draw from now on, forced or not: its range, its result, whether it was a chance draw and what it was
+   for. Allowed before OCG_StartDuel. */
 OCGAPI int OCG_DuelRecordRandomResults(OCG_Duel duel);
 /* Copy the first draws recorded, up to capacity, into output, oldest first, and set count to how many there are. */
 OCGAPI int OCG_DuelGetRandomResults(OCG_Duel duel, OCG_RandomResult* output, uint32_t capacity, uint32_t* count);

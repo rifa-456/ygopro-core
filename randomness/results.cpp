@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "../ocgapi.h"
+#include "../card.h"
 #include "../duel.h"
 
 #include <algorithm>
@@ -25,8 +26,11 @@ int32_t duel_random_results::next(duel &owner, int32_t low, int32_t high) {
     int32_t result = 0;
     bool was_forced = false;
     const bool chance = shuffles_ == 0;
+    auto *own = kind_ == OCG_DRAW_COIN ? &coins : kind_ == OCG_DRAW_DIE ? &dice : nullptr;
     if (chance && !chances.empty())
         was_forced = take(chances, low, high, result, refused);
+    else if (chance && own && !own->empty())
+        was_forced = take(*own, low, high, result, refused);
     else if (!forced.empty())
         was_forced = take(forced, low, high, result, refused);
     if (!was_forced) {
@@ -35,8 +39,30 @@ int32_t duel_random_results::next(duel &owner, int32_t low, int32_t high) {
         drawing_ = false;
     }
     if (recording)
-        recorded.push_back({low, high, result, static_cast<uint32_t>(was_forced), static_cast<uint32_t>(chance)});
+        recorded.push_back({low, high, result, static_cast<uint32_t>(was_forced), static_cast<uint32_t>(chance), kind_});
     return result;
+}
+
+int32_t duel_random_results::pick(duel &owner, const card_set &from, const card_set &taken) {
+    const auto high = static_cast<int32_t>(from.size()) - 1;
+    // A chance result forced by number is a replay's, which picks as the run it replays did.
+    if (chances.empty() && shuffles_ == 0) {
+        for (auto queued = cards.begin(); queued != cards.end(); ++queued) {
+            int32_t place = 0;
+            for (auto *pcard : from) {
+                const auto named = pcard->data.code == *queued || (pcard->data.alias && pcard->data.alias == *queued);
+                if (named && !taken.count(pcard)) {
+                    cards.erase(queued);
+                    if (recording)
+                        recorded.push_back({0, high, place, 1, 1, OCG_DRAW_CARD});
+                    return place;
+                }
+                ++place;
+            }
+        }
+    }
+    const drawing scope(*this, OCG_DRAW_CARD);
+    return owner.get_next_integer(0, high);
 }
 
 int OCG_DuelForceRandomResults(OCG_Duel ocg_duel, const int32_t *results, uint32_t count) {
@@ -61,6 +87,36 @@ int OCG_DuelForceChanceResults(OCG_Duel ocg_duel, const int32_t *results, uint32
         return OCG_RANDOM_ALLOCATION_FAILED;
     }
     return OCG_RANDOM_SUCCESS;
+}
+
+namespace {
+template <typename T>
+int replaced(std::deque<T> &queue, const T *values, uint32_t count) {
+    try {
+        queue.assign(values, values + count);
+    } catch (const std::bad_alloc &) {
+        return OCG_RANDOM_ALLOCATION_FAILED;
+    }
+    return OCG_RANDOM_SUCCESS;
+}
+}
+
+int OCG_DuelForceCoinResults(OCG_Duel ocg_duel, const int32_t *results, uint32_t count) {
+    if (!ocg_duel || (count && !results))
+        return OCG_RANDOM_INVALID_ARGUMENT;
+    return replaced(static_cast<duel *>(ocg_duel)->random_results.coins, results, count);
+}
+
+int OCG_DuelForceDieResults(OCG_Duel ocg_duel, const int32_t *results, uint32_t count) {
+    if (!ocg_duel || (count && !results))
+        return OCG_RANDOM_INVALID_ARGUMENT;
+    return replaced(static_cast<duel *>(ocg_duel)->random_results.dice, results, count);
+}
+
+int OCG_DuelForceRandomCards(OCG_Duel ocg_duel, const uint32_t *codes, uint32_t count) {
+    if (!ocg_duel || (count && !codes))
+        return OCG_RANDOM_INVALID_ARGUMENT;
+    return replaced(static_cast<duel *>(ocg_duel)->random_results.cards, codes, count);
 }
 
 int OCG_DuelRecordRandomResults(OCG_Duel ocg_duel) {

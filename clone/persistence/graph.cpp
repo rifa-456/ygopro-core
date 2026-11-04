@@ -117,6 +117,9 @@ void duel_archive::metadata() {
     stream_.scalar(d.random);
     io(d.random_results.forced);
     io(d.random_results.chances);
+    io(d.random_results.coins);
+    io(d.random_results.dice);
+    io(d.random_results.cards);
     auto recorded = stream_.count(d.random_results.recorded.size());
     if (stream_.reading)
         d.random_results.recorded.resize(recorded);

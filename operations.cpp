@@ -6065,6 +6065,7 @@ bool field::process(Processors::TossCoin& arg) {
 		message->write<uint8_t>(playerid);
 		message->write<uint8_t>(count);
 		core.coin_results.reserve(count);
+		const duel_random_results::drawing tossing(pduel->random_results, OCG_DRAW_COIN);
 		for(int32_t i = 0; i < count; ++i) {
 			auto coin = pduel->get_next_integer(0, 1);
 			core.coin_results.push_back(static_cast<bool>(coin));
@@ -6139,6 +6140,7 @@ bool field::process(Processors::TossDice& arg) {
 			}
 		}
 		core.dice_results.reserve(count1 + count2);
+		const duel_random_results::drawing rolling(pduel->random_results, OCG_DRAW_DIE);
 		auto message = pduel->new_message(MSG_TOSS_DICE);
 		message->write<uint8_t>(playerid);
 		message->write<uint8_t>(count1);
