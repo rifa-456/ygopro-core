@@ -59,7 +59,13 @@ OCGAPI int OCG_ReidentifyCard(OCG_Duel duel, uint8_t controller, uint32_t locati
    refused: that draw and the later ones use the random state, the results left are dropped, and
    OCG_DuelGetRandomResults returns OCG_RANDOM_REFUSED from then on. Allowed before OCG_StartDuel. */
 OCGAPI int OCG_DuelForceRandomResults(OCG_Duel duel, const int32_t* results, uint32_t count);
-/* Record every draw from now on, forced or not: its range and its result. Allowed before OCG_StartDuel. */
+/* Give the duel's next chance draws these results, in order: the draws outside any shuffle (a coin, a die, a
+   random pick) take them ahead of any result forced by OCG_DuelForceRandomResults, and shuffles never take them.
+   Results already given and not yet drawn come first; a result outside its draw's range is refused as there.
+   Allowed before OCG_StartDuel. */
+OCGAPI int OCG_DuelForceChanceResults(OCG_Duel duel, const int32_t* results, uint32_t count);
+/* Record every draw from now on, forced or not: its range, its result and whether it was a chance draw. Allowed
+   before OCG_StartDuel. */
 OCGAPI int OCG_DuelRecordRandomResults(OCG_Duel duel);
 /* Copy the first draws recorded, up to capacity, into output, oldest first, and set count to how many there are. */
 OCGAPI int OCG_DuelGetRandomResults(OCG_Duel duel, OCG_RandomResult* output, uint32_t capacity, uint32_t* count);

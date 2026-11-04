@@ -1414,6 +1414,7 @@ LUA_STATIC_FUNCTION(ShuffleSetCard) {
 		ms[ct] = pcard;
 		seq[ct] = current.sequence;
 	}
+	const duel_random_results::shuffling scope(pduel->random_results);
 	for(int32_t i = ct - 1; i > 0; --i) {
 		int32_t s = pduel->get_next_integer(0, i);
 		std::swap(ms[i], ms[s]);

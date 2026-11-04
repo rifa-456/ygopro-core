@@ -139,6 +139,8 @@ typedef struct OCG_RandomResult {
     int32_t high;
     int32_t result;
     uint32_t forced;
+    /* Nonzero for a chance draw, one outside any shuffle: a coin, a die or a random pick. */
+    uint32_t chance;
 } OCG_RandomResult;
 typedef enum {
     OCG_RANDOM_SUCCESS=0,
