@@ -116,7 +116,8 @@ void taken(Host &host) {
     require(top(*source, 0) == deck[2], "the next code not placed");
 }
 
-// A card moved to the bottom frees its code, which the next read places again.
+// A card moved to the bottom frees its code, which the next read places again in its place in the queue: the queue's
+// order is the order the deck gives, so the card comes back on top.
 void moved_to_bottom(Host &host) {
     auto source = setup(host, not_in_deck);
     const auto deck = deck_codes(*source, 0);
@@ -126,7 +127,7 @@ void moved_to_bottom(Host &host) {
     source->game_field->move_card(0, first, LOCATION_DECK, 1);
     require(source->game_field->player[0].list_main.front() == first, "card not moved to the bottom");
     read_top(*source, 0, 2);
-    require(top(*source, 0) == deck[2] && top(*source, 0, 1) == deck[0], "the freed code not placed again");
+    require(top(*source, 0) == deck[0] && top(*source, 0, 1) == deck[2], "the freed code not placed again");
     require(status(*source, {2, 0, 0, 0}), "a moved card used up its code");
 }
 
@@ -184,6 +185,45 @@ void settled(Host &host) {
             "a shuffle left the queued cards off the top");
 }
 
+// A card taken from below the top, as a search takes one, does not use up its code: the code is freed for another
+// copy, and a read that takes the top with no copy left counts it missing. A read's own card still uses its code up.
+void searched(Host &host) {
+    auto source = setup(host, not_in_deck);
+    const auto deck = deck_codes(*source, 0);
+    force(*source, 0, {deck[2], deck[0]});
+    source->forced_deck_top.settle(*source->game_field);
+    auto &main = source->game_field->player[0].list_main;
+    auto *placed = main[main.size() - 2];
+    require(placed->data.code == deck[0], "settling did not place the second code");
+    source->game_field->move_card(0, placed, LOCATION_HAND, 0);
+    require(status(*source, {2, 0, 0, 0}), "a search used up a code no read reached");
+    source->forced_deck_top.prepare(*source->game_field, 0, 1, true);
+    take_top(*source, 0);
+    require(status(*source, {1, 0, 0, 0}), "a read's card did not use up its code");
+    source->forced_deck_top.prepare(*source->game_field, 0, 1, true);
+    require(status(*source, {0, 0, 1, 0}), "the searched code, with no copy left, not counted missing");
+}
+
+// A card put on top after the deck settled takes the next code when it has it, so the deck gives it first and the
+// code meant for it is not left on a copy further down.
+void put_on_top(Host &host) {
+    auto source = setup(host, not_in_deck);
+    const auto deck = deck_codes(*source, 0);
+    force(*source, 0, {deck[2], deck[4]});
+    source->forced_deck_top.settle(*source->game_field);
+    auto &main = source->game_field->player[0].list_main;
+    auto *placed = main.back();
+    require(placed->data.code == deck[2], "settling did not place the first code");
+    source->game_field->move_card(0, placed, LOCATION_HAND, 0);
+    source->game_field->move_card(0, placed, LOCATION_DECK, 0);
+    require(main.back() == placed, "card not put back on top");
+    source->forced_deck_top.prepare(*source->game_field, 0, 1, true);
+    take_top(*source, 0);
+    require(status(*source, {1, 0, 0, 0}), "the card put back on top did not use up its code");
+    read_top(*source, 0, 1);
+    require(top(*source, 0) == deck[4], "the next code not placed after it");
+}
+
 // Clones, snapshots and checkpoints carry the codes left and the cards placed.
 void carried(Host &host) {
     auto source = setup(host, not_in_deck);
@@ -221,6 +261,8 @@ int main(int argc, char **argv) {
         alias(host);
         per_player(host);
         settled(host);
+        searched(host);
+        put_on_top(host);
         carried(host);
         require(host.errors.empty(), "script errors");
     } catch (const std::exception &error) {
