@@ -84,6 +84,11 @@ void duel_forced_deck_top::release(uint8_t player) noexcept {
         std::fill(placed[player].begin(), placed[player].end(), not_placed);
 }
 
+void duel_forced_deck_top::settle(field &owner) {
+    for (uint8_t player = 0; player < 2; ++player)
+        prepare(owner, player, static_cast<uint32_t>(codes[player].size()), false);
+}
+
 int OCG_DuelForceDeckTop(OCG_Duel ocg_duel, uint8_t player, const uint32_t *codes, uint32_t count) {
     if (!ocg_duel || player > 1 || (count && !codes))
         return OCG_RANDOM_INVALID_ARGUMENT;

@@ -968,6 +968,7 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 				to_shuffle[r] = t;
 			}
 			reset_sequence(playerid, location);
+			if(location == LOCATION_DECK) pduel->forced_deck_top.settle(*this);
 		}
 	}
 	if(location == LOCATION_HAND || location == LOCATION_EXTRA) {

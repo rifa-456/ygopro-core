@@ -169,6 +169,21 @@ void per_player(Host &host) {
     require(top(*source, 1) == wanted && status(*source, {0, 1, 0, 0}), "code not placed");
 }
 
+// Settling places every queued code the deck holds before any read, and a shuffle settles the deck again at once, so a
+// script that finds a card by its place in the deck sees the order the reads will give.
+void settled(Host &host) {
+    auto source = setup(host, not_in_deck);
+    const auto deck = deck_codes(*source, 0);
+    force(*source, 0, {deck[0], deck[2], deck[4]});
+    source->forced_deck_top.settle(*source->game_field);
+    require(top(*source, 0) == deck[0] && top(*source, 0, 1) == deck[2] && top(*source, 0, 2) == deck[4],
+            "settling did not place the queued cards");
+    require(status(*source, {3, 0, 0, 0}), "settling used up codes");
+    source->game_field->shuffle(0, LOCATION_DECK);
+    require(top(*source, 0) == deck[0] && top(*source, 0, 1) == deck[2] && top(*source, 0, 2) == deck[4],
+            "a shuffle left the queued cards off the top");
+}
+
 // Clones, snapshots and checkpoints carry the codes left and the cards placed.
 void carried(Host &host) {
     auto source = setup(host, not_in_deck);
@@ -205,6 +220,7 @@ int main(int argc, char **argv) {
         missing_and_any(host);
         alias(host);
         per_player(host);
+        settled(host);
         carried(host);
         require(host.errors.empty(), "script errors");
     } catch (const std::exception &error) {

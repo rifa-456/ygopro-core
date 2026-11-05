@@ -117,6 +117,7 @@ int OCG_DuelProcess(OCG_Duel ocg_duel) {
 	pduel->buff.clear();
 	auto flag = OCG_DUEL_STATUS_END;
 	do {
+		pduel->forced_deck_top.settle(*pduel->game_field);
 		flag = pduel->game_field->process();
 		pduel->generate_buffer();
 	} while(pduel->buff.size() == 0 && flag == OCG_DUEL_STATUS_CONTINUE);

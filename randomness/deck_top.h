@@ -13,7 +13,9 @@ class field;
     cards the deck gives from its top, in order. Before each read of a deck's top, every position read that holds no
     placed card takes the next code not placed yet, and the card with it moves there. A code is used up only when its
     card leaves the deck; when the deck is shuffled, or the card is moved away from the top inside the deck, the code
-    is free again, so a look at the top that takes nothing leaves the order as it was. */
+    is free again, so a look at the top that takes nothing leaves the order as it was. The deck also settles into that
+    order before each step of the duel and after each shuffle, so a script that finds a card by its place in the deck
+    before it reads the top, as excavating until a kind of card does, sees the order the reads will give. */
 class duel_forced_deck_top {
   public:
     /** Before the duel reads the top count cards of player's deck, place the next free codes there: for each position
@@ -28,6 +30,8 @@ class duel_forced_deck_top {
     void moved(uint8_t player, uint32_t fieldid, bool to_top) noexcept;
     /** player's deck was shuffled, so every code placed on it is free again. */
     void release(uint8_t player) noexcept;
+    /** Place every free code each player's deck holds, as a read of all of them that takes nothing would. */
+    void settle(field &owner);
 
     /** Placed on no card. Field ids start at 1. */
     static constexpr uint32_t not_placed = 0;
