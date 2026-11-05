@@ -815,6 +815,7 @@ LUA_STATIC_FUNCTION(ConfirmDecktop) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	auto count = lua_get<uint32_t>(L, 2);
+	pduel->forced_deck_top.prepare(*pduel->game_field, playerid, count, false);
 	const auto& player = pduel->game_field->player[playerid];
 	const auto& list_main = player.list_main;
 	if(count >= list_main.size())
@@ -945,6 +946,7 @@ LUA_STATIC_FUNCTION(SortDecktop) {
 		return 0;
 	if(count < 1 || count > 64)
 		return 0;
+	pduel->forced_deck_top.prepare(*pduel->game_field, target_player, count, false);
 	pduel->game_field->emplace_process<Processors::SortDeck>(sort_player, target_player, count, false);
 	return yield();
 }
@@ -2224,6 +2226,7 @@ LUA_STATIC_FUNCTION(GetDecktopGroup) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto& main = pduel->game_field->player[playerid].list_main;
 	const auto count = std::min<size_t>(lua_get<uint32_t>(L, 2), main.size());
+	pduel->forced_deck_top.prepare(*pduel->game_field, playerid, static_cast<uint32_t>(count), false);
 	const auto offset = main.size() - count;
 	auto pgroup = pduel->new_group(main.begin() + offset, main.end());
 	interpreter::pushobject(L, pgroup);

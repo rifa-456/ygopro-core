@@ -80,17 +80,17 @@ OCGAPI int OCG_DuelForceRandomCards(OCG_Duel duel, const uint32_t* codes, uint32
 OCGAPI int OCG_DuelRecordRandomResults(OCG_Duel duel);
 /* Copy the first draws recorded, up to capacity, into output, oldest first, and set count to how many there are. */
 OCGAPI int OCG_DuelGetRandomResults(OCG_Duel duel, OCG_RandomResult* output, uint32_t capacity, uint32_t* count);
-/* Queue the cards the next shuffle of player's deck puts on top, codes[0] on top and each next one beneath it; each
-   call queues one more shuffle. A deck shuffle takes the next entry and forces the results of its own draws to
-   give that order, ahead of any results already forced, so it is recorded and replays like any other shuffle; the
-   other cards stay in their order beneath. An empty entry leaves its shuffle to the random state, and a shuffle
-   that draws nothing (fewer than two cards, or DUEL_PSEUDO_SHUFFLE) takes no entry. An entry naming a card its
-   deck does not hold, counting each copy once, is refused: that shuffle uses the random state, every entry left
-   is dropped, and OCG_DuelGetDeckShuffleStatus returns OCG_RANDOM_REFUSED from then on. */
-OCGAPI int OCG_DuelForceDeckShuffle(OCG_Duel duel, uint8_t player, const uint32_t* codes, uint32_t count);
-/* Write how many shuffles each player still has queued to left[0] and left[1]; OCG_RANDOM_REFUSED once an entry
-   was refused. */
-OCGAPI int OCG_DuelGetDeckShuffleStatus(OCG_Duel duel, uint32_t* left);
+/* Queue the codes of the cards player's deck gives from its top, after those already queued; 0 stands for any card.
+   Before each read of a deck's top (a draw, a mill, a look at its top cards, a group of them or their sorting), every
+   position read that holds no placed card takes the next code not placed yet: the card nearest the top that has that
+   code, or that code as its alias, and holds no code moves there. A code is used up only when its card leaves the
+   deck; when the deck is shuffled, or the card is moved away from the top inside the deck, the code is free again for
+   the next read. A code the deck does not hold stops a look and stays queued; a draw or a mill counts it as missing,
+   drops it and takes the card already there. Allowed before OCG_StartDuel, so the opening hands are drawn this way. */
+OCGAPI int OCG_DuelForceDeckTop(OCG_Duel duel, uint8_t player, const uint32_t* codes, uint32_t count);
+/* Write how many queued codes each player's deck has still to give to left[0] and left[1], and how many it did not
+   hold when a draw or a mill took its top to missing[0] and missing[1]. */
+OCGAPI int OCG_DuelGetDeckTopStatus(OCG_Duel duel, uint32_t* left, uint32_t* missing);
 /* Timers and counters of the cloning phases, compiled in with OCG_CLONE_PROFILING; Enabled is 0 without. */
 OCGAPI int OCG_CloneProfileEnabled(void);
 OCGAPI int OCG_CloneProfileBegin(void);

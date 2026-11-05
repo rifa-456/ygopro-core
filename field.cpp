@@ -218,6 +218,7 @@ void field::remove_card(card* pcard) {
 		break;
 	case LOCATION_DECK:
 		player[playerid].list_main.erase(player[playerid].list_main.begin() + pcard->current.sequence);
+		pduel->forced_deck_top.leave(playerid, pcard->fieldid);
 		reset_sequence(playerid, LOCATION_DECK);
 		if(!core.shuffle_check_disabled)
 			core.shuffle_deck_check[playerid] = true;
@@ -290,6 +291,7 @@ bool field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t s
 							core.shuffle_deck_check[playerid] = true;
 					}
 					reset_sequence(playerid, LOCATION_DECK);
+					pduel->forced_deck_top.moved(playerid, pcard->fieldid, sequence == 0);
 					pcard->previous.controler = preplayer;
 					pcard->current.controler = playerid;
 					message->write(pcard->get_info_location());
@@ -957,7 +959,7 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 		if(location == LOCATION_EXTRA)
 			upper_bound -= player[playerid].extra_p_count;
 		if(upper_bound > 1) {
-			if(location == LOCATION_DECK) pduel->forced_shuffles.prepare(*pduel, playerid, to_shuffle);
+			if(location == LOCATION_DECK) pduel->forced_deck_top.release(playerid);
 			const duel_random_results::shuffling scope(pduel->random_results);
 			for(int32_t i = 0; i < upper_bound - 1; ++i) {
 				auto r = pduel->get_next_integer(i, upper_bound - 1);

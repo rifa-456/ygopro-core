@@ -429,6 +429,7 @@ bool field::process(Processors::Draw& arg) {
 			return TRUE;
 		}
 		core.overdraw[playerid] = false;
+		pduel->forced_deck_top.prepare(*this, playerid, count, true);
 		for(uint32_t i = 0; i < count; ++i) {
 			if(player[playerid].list_main.size() == 0) {
 				core.overdraw[playerid] = true;
@@ -439,6 +440,7 @@ bool field::process(Processors::Draw& arg) {
 			pcard->enable_field_effect(false);
 			pcard->cancel_field_effect();
 			player[playerid].list_main.pop_back();
+			pduel->forced_deck_top.leave(playerid, pcard->fieldid);
 			if(core.current_chain.size() > 0)
 				core.just_sent_cards.insert(pcard);
 			pcard->previous.controler = pcard->current.controler;
@@ -4757,6 +4759,7 @@ bool field::process(Processors::DiscardDeck& arg) {
 			returns.set<int32_t>(0, 0);
 			return TRUE;
 		}
+		pduel->forced_deck_top.prepare(*this, playerid, count, true);
 		int32_t i = 0;
 		for(auto cit = player[playerid].list_main.rbegin(); i < count && cit != player[playerid].list_main.rend(); ++cit, ++i) {
 			uint32_t dest = LOCATION_GRAVE;
@@ -4811,6 +4814,7 @@ bool field::process(Processors::DiscardDeck& arg) {
 			pcard->enable_field_effect(false);
 			pcard->cancel_field_effect();
 			player[playerid].list_main.pop_back();
+			pduel->forced_deck_top.leave(playerid, pcard->fieldid);
 			if(core.current_chain.size() > 0)
 				core.just_sent_cards.insert(pcard);
 			pcard->previous.controler = pcard->current.controler;

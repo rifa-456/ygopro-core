@@ -21,7 +21,7 @@
 #include "ocgapi_types.h"
 #include "RNG/Xoshiro256.hpp"
 #include "randomness/results.h"
-#include "randomness/deck_shuffles.h"
+#include "randomness/deck_top.h"
 
 class card;
 class effect;
@@ -75,7 +75,7 @@ public:
 	bool has_ended = false;
 	int last_status = -1;
 	duel_random_results random_results;
-	duel_forced_shuffles forced_shuffles;
+	duel_forced_deck_top forced_deck_top;
 	std::vector<uint8_t> buff;
 	std::vector<uint8_t> query_buffer;
 	field* game_field{};

@@ -127,8 +127,9 @@ void duel_archive::metadata() {
         stream_.scalar(result);
     io(d.random_results.recording);
     io(d.random_results.refused);
-    io(d.forced_shuffles.queued);
-    io(d.forced_shuffles.refused);
+    io(d.forced_deck_top.codes);
+    io(d.forced_deck_top.placed);
+    io(d.forced_deck_top.missing);
     io(d.has_ended);
     io(d.last_status);
 }

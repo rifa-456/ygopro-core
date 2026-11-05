@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -178,15 +179,16 @@ std::string state(duel &d) {
             << int(c->current.location) << ',' << c->current.sequence << ',' << c->current.position;
     return out.str();
 }
-DuelPtr setup(Host &h, uint32_t spell_code) {
+// Each player draws hand cards to start; before_start runs on the duel just before it starts.
+DuelPtr setup(Host &h, uint32_t spell_code, uint32_t hand = 0, const std::function<void(duel &)> &before_start = {}) {
     OCG_DuelOptions o{};
     o.seed[0] = 123;
     o.seed[1] = 456;
     o.seed[2] = 789;
     o.seed[3] = 12;
     o.flags = DUEL_MODE_MR5;
-    o.team1 = {8000, 0, 1};
-    o.team2 = {8000, 0, 1};
+    o.team1 = {8000, hand, 1};
+    o.team2 = {8000, hand, 1};
     o.cardReader = reader;
     o.payload1 = &h;
     o.scriptReader = script;
@@ -228,6 +230,8 @@ DuelPtr setup(Host &h, uint32_t spell_code) {
     OCG_Duel invalid = nullptr;
     auto c = callbacks(h);
     require(OCG_CloneDuel(&invalid, raw, &c) == OCG_CLONE_NOT_AWAITING, "prestart clone accepted");
+    if (before_start)
+        before_start(*d);
     OCG_StartDuel(raw);
     require(advance(*d) == OCG_DUEL_STATUS_AWAITING, "no initial decision");
     return d;
