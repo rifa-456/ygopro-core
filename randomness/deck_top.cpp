@@ -85,7 +85,19 @@ void duel_forced_deck_top::prepare(field &owner, uint8_t player, uint32_t count,
         card_set below;
         for (std::size_t index = 0; index <= top; ++index)
             below.insert(deck[index]);
-        auto *picked = *std::next(below.begin(), owner.pduel->random_results.pick(*owner.pduel, below, {}));
+        // A card the host names from this deck is picked; any other read finds the card already there, as the deck's
+        // unseen order puts it, recorded so that a replay finds it again.
+        auto &results = owner.pduel->random_results;
+        const auto place = (static_cast<uint32_t>(player) << 16) | LOCATION_DECK;
+        int32_t chosen = 0;
+        if (results.chances.empty() && results.named(below, place)) {
+            chosen = results.pick(*owner.pduel, below, {}, true);
+        } else {
+            const auto here = static_cast<int32_t>(std::distance(below.begin(), below.find(deck[top])));
+            const duel_random_results::drawing kept(results, OCG_DRAW_KEPT);
+            chosen = results.next_or(*owner.pduel, 0, static_cast<int32_t>(below.size()) - 1, here);
+        }
+        auto *picked = *std::next(below.begin(), chosen);
         const auto found = std::find(deck.begin(), deck.end(), picked) - deck.begin();
         if (static_cast<std::size_t>(found) != top) {
             std::swap(deck[static_cast<std::size_t>(found)], deck[top]);

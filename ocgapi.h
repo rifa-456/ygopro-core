@@ -75,6 +75,9 @@ OCGAPI int OCG_DuelForceDieResults(OCG_Duel duel, const int32_t* results, uint32
    The pick is recorded as a forced draw of the picked card's place among the cards picked from. Allowed before
    OCG_StartDuel. */
 OCGAPI int OCG_DuelForceRandomCards(OCG_Duel duel, const uint32_t* codes, uint32_t count);
+/* As OCG_DuelForceRandomCards, with where each card is to be taken from: its controller times 0x10000 plus its
+   location, or 0 for anywhere, so a card a host's log shows leaving a deck is taken only from that deck. */
+OCGAPI int OCG_DuelForceRandomCardsFrom(OCG_Duel duel, const uint32_t* codes, const uint32_t* places, uint32_t count);
 /* Record every draw from now on, forced or not: its range, its result, whether it was a chance draw and what it was
    for. Allowed before OCG_StartDuel. */
 OCGAPI int OCG_DuelRecordRandomResults(OCG_Duel duel);

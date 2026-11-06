@@ -23,6 +23,10 @@ bool take(std::deque<int32_t> &queue, int32_t low, int32_t high, int32_t &result
 }
 
 int32_t duel_random_results::next(duel &owner, int32_t low, int32_t high) {
+    return next_or(owner, low, high, -1);
+}
+
+int32_t duel_random_results::next_or(duel &owner, int32_t low, int32_t high, int32_t otherwise) {
     int32_t result = 0;
     bool was_forced = false;
     const bool chance = shuffles_ == 0;
@@ -33,7 +37,9 @@ int32_t duel_random_results::next(duel &owner, int32_t low, int32_t high) {
         was_forced = take(*own, low, high, result, refused);
     else if (!forced.empty())
         was_forced = take(forced, low, high, result, refused);
-    if (!was_forced) {
+    if (!was_forced && otherwise >= low && otherwise <= high) {
+        result = otherwise;
+    } else if (!was_forced) {
         drawing_ = true;
         result = owner.get_next_integer(low, high);
         drawing_ = false;
@@ -43,15 +49,34 @@ int32_t duel_random_results::next(duel &owner, int32_t low, int32_t high) {
     return result;
 }
 
-int32_t duel_random_results::pick(duel &owner, const card_set &from, const card_set &taken) {
+bool duel_random_results::named(const card_set &from, uint32_t place) const {
+    for (std::size_t index = 0; index < cards.size() && index < places.size(); ++index) {
+        if (places[index] != place)
+            continue;
+        for (auto *pcard : from)
+            if (pcard->data.code == cards[index] || (pcard->data.alias && pcard->data.alias == cards[index]))
+                return true;
+    }
+    return false;
+}
+
+int32_t duel_random_results::pick(duel &owner, const card_set &from, const card_set &taken, bool placed) {
     const auto high = static_cast<int32_t>(from.size()) - 1;
     // A chance result forced by number is a replay's, which picks as the run it replays did.
     if (chances.empty() && shuffles_ == 0) {
         for (auto queued = cards.begin(); queued != cards.end(); ++queued) {
+            const auto index = static_cast<std::size_t>(queued - cards.begin());
+            const auto where = index < places.size() ? places[index] : 0;
+            if (placed && where == 0)
+                continue;
             int32_t place = 0;
             for (auto *pcard : from) {
                 const auto named = pcard->data.code == *queued || (pcard->data.alias && pcard->data.alias == *queued);
-                if (named && !taken.count(pcard)) {
+                const auto there = where == 0 || where == ((static_cast<uint32_t>(pcard->current.controler) << 16) |
+                                                           pcard->current.location);
+                if (named && there && !taken.count(pcard)) {
+                    if (index < places.size())
+                        places.erase(places.begin() + static_cast<std::ptrdiff_t>(index));
                     cards.erase(queued);
                     if (recording)
                         recorded.push_back({0, high, place, 1, 1, OCG_DRAW_CARD});
@@ -116,7 +141,16 @@ int OCG_DuelForceDieResults(OCG_Duel ocg_duel, const int32_t *results, uint32_t 
 int OCG_DuelForceRandomCards(OCG_Duel ocg_duel, const uint32_t *codes, uint32_t count) {
     if (!ocg_duel || (count && !codes))
         return OCG_RANDOM_INVALID_ARGUMENT;
+    static_cast<duel *>(ocg_duel)->random_results.places.clear();
     return replaced(static_cast<duel *>(ocg_duel)->random_results.cards, codes, count);
+}
+
+int OCG_DuelForceRandomCardsFrom(OCG_Duel ocg_duel, const uint32_t *codes, const uint32_t *places, uint32_t count) {
+    if (!ocg_duel || (count && (!codes || !places)))
+        return OCG_RANDOM_INVALID_ARGUMENT;
+    auto &results = static_cast<duel *>(ocg_duel)->random_results;
+    const auto status = replaced(results.cards, codes, count);
+    return status == OCG_RANDOM_SUCCESS ? replaced(results.places, places, count) : status;
 }
 
 int OCG_DuelRecordRandomResults(OCG_Duel ocg_duel) {

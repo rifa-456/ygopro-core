@@ -56,9 +56,16 @@ class duel_random_results {
     /** The result of a draw in [low, high]: the next forced one, a chance result first, then one forced for its kind,
         or else one from the duel's random state. */
     int32_t next(duel &owner, int32_t low, int32_t high);
+    /** The result of a draw in [low, high] that, unless a result is forced, takes otherwise rather than the duel's
+        random state. */
+    int32_t next_or(duel &owner, int32_t low, int32_t high, int32_t otherwise);
     /** The place among from of the card a random pick takes, the cards in taken excepted: the first queued card from
-        holds, recorded as a forced draw, or else a draw like any other. A chance result forced ahead goes first. */
-    int32_t pick(duel &owner, const card_set &from, const card_set &taken);
+        holds where its place says, recorded as a forced draw, or else a draw like any other. A chance result forced
+        ahead goes first. With placed set, a queued card whose place says anywhere is passed over. */
+    int32_t pick(duel &owner, const card_set &from, const card_set &taken, bool placed = false);
+    /** Whether a queued card has exactly this place, its controller times 0x10000 plus its location, and from holds a
+        card of its code there. */
+    bool named(const card_set &from, uint32_t place) const;
 
     /** The results the next draws take, first to last. */
     std::deque<int32_t> forced;
@@ -71,6 +78,9 @@ class duel_random_results {
     std::deque<int32_t> dice;
     /** The codes of the cards the next random picks take, behind any chance result. */
     std::deque<uint32_t> cards;
+    /** Where each of those cards is to be taken from, as a card's controller times 0x10000 plus its location; none, or
+        0, for anywhere. */
+    std::deque<uint32_t> places;
     /** Every draw since recording started. */
     std::vector<OCG_RandomResult> recorded;
     bool recording = false;

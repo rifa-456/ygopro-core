@@ -138,7 +138,10 @@ typedef enum {
     OCG_DRAW_OTHER=0,
     OCG_DRAW_COIN=1,
     OCG_DRAW_DIE=2,
-    OCG_DRAW_CARD=3
+    OCG_DRAW_CARD=3,
+    /* A card a read of a deck's top found where it was, the deck's order unseen and so not drawn at random: a chance
+       result a replay forces like any other, which costs nothing and has no other result worth trying. */
+    OCG_DRAW_KEPT=4
 } OCG_DrawKind;
 typedef struct OCG_RandomResult {
     int32_t low;

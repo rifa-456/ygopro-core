@@ -18,10 +18,12 @@ class field;
     order before each step of the duel and after each shuffle, so a script that finds a card by its place in the deck
     before it reads the top, as excavating until a kind of card does, sees the order the reads will give.
 
-    With drawing set, a read that reaches past the queued codes draws each further card as a random pick from the cards
-    at and below its place, as the shuffles would have put any of them there; the pick is recorded and forced like any
-    other, so a host that rebuilds a logged duel can give each read the cards its log shows, step by step. A drawn card
-    keeps its place until it leaves, the deck is shuffled, or it moves away from the top, and is then forgotten. */
+    With drawing set, a read that reaches past the queued codes draws each further card from the cards at and below its
+    place, as the shuffles could have put any of them there: a card the host names from that deck is picked, as a
+    random pick forced by code, and any other read finds the card already there, recorded as a kept draw; a replay
+    forces both like any chance result. So a host that rebuilds a logged duel gives each read the cards its log shows
+    leaving the deck, step by step, and a look the log shows nothing of leaves the deck as it was. A drawn card keeps its
+    place until it leaves, the deck is shuffled, or it moves away from the top, and is then forgotten. */
 class duel_forced_deck_top {
   public:
     /** Before the duel reads the top count cards of player's deck, give the queued codes to those cards in order: the

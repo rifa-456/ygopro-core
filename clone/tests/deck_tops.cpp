@@ -251,8 +251,8 @@ std::size_t card_draws(duel &d) {
                                                   [](const OCG_RandomResult &draw) { return draw.kind == OCG_DRAW_CARD; }));
 }
 
-// With drawing set, a read past the queued codes draws each further card as a random pick: a card a host forces by its
-// code comes up, the draw is recorded, and the card keeps its place until a shuffle forgets it.
+// With drawing set, a read past the queued codes draws each further card: a card a host names from the deck comes up as
+// a recorded pick, and the card keeps its place until a shuffle forgets it.
 void drawn(Host &host) {
     auto source = setup(host, not_in_deck);
     const auto deck = deck_codes(*source, 0);
@@ -261,7 +261,9 @@ void drawn(Host &host) {
     OCG_DuelRecordRandomResults(source.get());
     force(*source, 0, {deck[3]});
     const std::array<uint32_t, 2> named{not_in_deck, deck[0]};
-    require(OCG_DuelForceRandomCards(source.get(), named.data(), 2) == OCG_RANDOM_SUCCESS, "cards not forced");
+    const std::array<uint32_t, 2> places{LOCATION_DECK, LOCATION_DECK};
+    require(OCG_DuelForceRandomCardsFrom(source.get(), named.data(), places.data(), 2) == OCG_RANDOM_SUCCESS,
+            "cards not forced");
     read_top(*source, 0, 2);
     require(top(*source, 0) == deck[3] && top(*source, 0, 1) == deck[0], "the named card not drawn below the queued");
     require(card_draws(*source) == 1 && status(*source, {2, 0, 0, 0}), "the draw not recorded as one pick");
@@ -269,6 +271,38 @@ void drawn(Host &host) {
     require(top(*source, 0, 1) == deck[0] && card_draws(*source) == 1, "a drawn card drawn again");
     source->game_field->shuffle(0, LOCATION_DECK);
     require(status(*source, {1, 0, 0, 0}), "a shuffle kept the drawn card");
+}
+
+// A card forced with where it is to be taken from is drawn only from there: one named from the other player's deck is
+// passed over for the next.
+void drawn_from(Host &host) {
+    auto source = setup(host, not_in_deck);
+    const auto deck = deck_codes(*source, 0);
+    OCG_DuelDrawDeckTops(source.get(), 1);
+    const std::array<uint32_t, 2> named{deck[0], deck[2]};
+    const std::array<uint32_t, 2> places{(1u << 16) | LOCATION_DECK, LOCATION_DECK};
+    require(OCG_DuelForceRandomCardsFrom(source.get(), named.data(), places.data(), 2) == OCG_RANDOM_SUCCESS,
+            "cards not forced");
+    read_top(*source, 0, 1);
+    require(top(*source, 0) == deck[2], "a card named from another place drawn");
+    require(OCG_DuelForceRandomCardsFrom(source.get(), named.data(), nullptr, 2) == OCG_RANDOM_INVALID_ARGUMENT,
+            "no places accepted");
+}
+
+// A card named from anywhere, as a log's activation names one, is no card from the deck's top: the read keeps the card
+// there, recorded as a kept draw.
+void kept(Host &host) {
+    auto source = setup(host, not_in_deck);
+    const auto deck = deck_codes(*source, 0);
+    OCG_DuelDrawDeckTops(source.get(), 1);
+    OCG_DuelRecordRandomResults(source.get());
+    const auto there = top(*source, 0);
+    const std::array<uint32_t, 1> named{deck[0]};
+    OCG_DuelForceRandomCards(source.get(), named.data(), 1);
+    read_top(*source, 0, 1);
+    require(top(*source, 0) == there, "a card named from anywhere drawn from the deck");
+    require(source->random_results.recorded.size() == 1 && source->random_results.recorded[0].kind == OCG_DRAW_KEPT,
+            "the card kept not recorded");
 }
 
 // A run's draws replayed as chance results draw the same cards; without drawing set, a read draws nothing.
@@ -313,6 +347,8 @@ int main(int argc, char **argv) {
         put_on_top(host);
         carried(host);
         drawn(host);
+        drawn_from(host);
+        kept(host);
         replayed(host);
         require(host.errors.empty(), "script errors");
     } catch (const std::exception &error) {
