@@ -16,7 +16,12 @@ class field;
     its code for another copy. When the deck is shuffled, or the card is moved away from the top inside the deck, the code
     is free again, so a look at the top that takes nothing leaves the order as it was. The deck also settles into that
     order before each step of the duel and after each shuffle, so a script that finds a card by its place in the deck
-    before it reads the top, as excavating until a kind of card does, sees the order the reads will give. */
+    before it reads the top, as excavating until a kind of card does, sees the order the reads will give.
+
+    With drawing set, a read that reaches past the queued codes draws each further card as a random pick from the cards
+    at and below its place, as the shuffles would have put any of them there; the pick is recorded and forced like any
+    other, so a host that rebuilds a logged duel can give each read the cards its log shows, step by step. A drawn card
+    keeps its place until it leaves, the deck is shuffled, or it moves away from the top, and is then forgotten. */
 class duel_forced_deck_top {
   public:
     /** Before the duel reads the top count cards of player's deck, give the queued codes to those cards in order: the
@@ -32,9 +37,10 @@ class duel_forced_deck_top {
         anywhere else in the deck, as a search takes one, only frees its code for another copy, since the deck still
         gives that code from its top. */
     void leave(uint8_t player, uint32_t fieldid) noexcept;
-    /** The card with fieldid moved inside player's deck; anywhere but its top, the code placed on it is free again. */
+    /** The card with fieldid moved inside player's deck; anywhere but its top, the code placed on it is free again, or
+        forgotten if a read drew it. */
     void moved(uint8_t player, uint32_t fieldid, bool to_top) noexcept;
-    /** player's deck was shuffled, so every code placed on it is free again. */
+    /** player's deck was shuffled, so every code placed on it is free again, and every code a read drew is forgotten. */
     void release(uint8_t player) noexcept;
     /** Place every free code each player's deck holds, as a read of all of them that takes nothing would. */
     void settle(field &owner);
@@ -47,6 +53,14 @@ class duel_forced_deck_top {
     std::vector<uint32_t> placed[2];
     /** Per player and code, whether a read of the deck's top reached the card it is placed on. */
     std::vector<uint8_t> read[2];
+    /** Per player and code, whether a read drew it rather than the host queuing it. */
+    std::vector<uint8_t> drawn[2];
     /** Per player, how many codes the deck did not hold when a read took its top. */
     uint32_t missing[2] = {0, 0};
+    /** Whether a read past the queued codes draws its cards as random picks. */
+    bool drawing = false;
+
+  private:
+    /** Removes the code at entry of player's queue. */
+    void erase(uint8_t player, std::size_t entry) noexcept;
 };

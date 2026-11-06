@@ -3,6 +3,7 @@
 #include "clone/persistence/api.h"
 #include "support/duel_fixture.h"
 
+#include <algorithm>
 #include <array>
 #include <string>
 
@@ -243,6 +244,53 @@ void carried(Host &host) {
         require(top(*d, 0) == deck[0] && top(*d, 0, 1) == deck[1], "placed card or code left not carried");
     }
 }
+
+// The card draws a duel recorded, as OCG_DRAW_CARD picks.
+std::size_t card_draws(duel &d) {
+    return static_cast<std::size_t>(std::count_if(d.random_results.recorded.begin(), d.random_results.recorded.end(),
+                                                  [](const OCG_RandomResult &draw) { return draw.kind == OCG_DRAW_CARD; }));
+}
+
+// With drawing set, a read past the queued codes draws each further card as a random pick: a card a host forces by its
+// code comes up, the draw is recorded, and the card keeps its place until a shuffle forgets it.
+void drawn(Host &host) {
+    auto source = setup(host, not_in_deck);
+    const auto deck = deck_codes(*source, 0);
+    require(OCG_DuelDrawDeckTops(nullptr, 1) == OCG_RANDOM_INVALID_ARGUMENT, "no duel accepted");
+    require(OCG_DuelDrawDeckTops(source.get(), 1) == OCG_RANDOM_SUCCESS, "drawing not set");
+    OCG_DuelRecordRandomResults(source.get());
+    force(*source, 0, {deck[3]});
+    const std::array<uint32_t, 2> named{not_in_deck, deck[0]};
+    require(OCG_DuelForceRandomCards(source.get(), named.data(), 2) == OCG_RANDOM_SUCCESS, "cards not forced");
+    read_top(*source, 0, 2);
+    require(top(*source, 0) == deck[3] && top(*source, 0, 1) == deck[0], "the named card not drawn below the queued");
+    require(card_draws(*source) == 1 && status(*source, {2, 0, 0, 0}), "the draw not recorded as one pick");
+    read_top(*source, 0, 2);
+    require(top(*source, 0, 1) == deck[0] && card_draws(*source) == 1, "a drawn card drawn again");
+    source->game_field->shuffle(0, LOCATION_DECK);
+    require(status(*source, {1, 0, 0, 0}), "a shuffle kept the drawn card");
+}
+
+// A run's draws replayed as chance results draw the same cards; without drawing set, a read draws nothing.
+void replayed(Host &host) {
+    auto source = setup(host, not_in_deck);
+    OCG_DuelDrawDeckTops(source.get(), 1);
+    OCG_DuelRecordRandomResults(source.get());
+    auto copy = clone(*source, host);
+    read_top(*source, 0, 3);
+    std::vector<int32_t> results;
+    for (const auto &draw : source->random_results.recorded)
+        results.push_back(draw.result);
+    require(results.size() == 3, "each card past the queue not drawn");
+    require(OCG_DuelForceChanceResults(copy.get(), results.data(), 3) == OCG_RANDOM_SUCCESS, "results not forced");
+    read_top(*copy, 0, 3);
+    for (std::size_t depth = 0; depth < 3; ++depth)
+        require(top(*copy, 0, depth) == top(*source, 0, depth), "a replay drew another card");
+    auto plain = setup(host, not_in_deck);
+    OCG_DuelRecordRandomResults(plain.get());
+    read_top(*plain, 0, 3);
+    require(card_draws(*plain) == 0, "a read drew without drawing set");
+}
 }
 
 int main(int argc, char **argv) {
@@ -264,6 +312,8 @@ int main(int argc, char **argv) {
         searched(host);
         put_on_top(host);
         carried(host);
+        drawn(host);
+        replayed(host);
         require(host.errors.empty(), "script errors");
     } catch (const std::exception &error) {
         std::cerr << error.what() << '\n';

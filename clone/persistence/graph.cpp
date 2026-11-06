@@ -130,7 +130,9 @@ void duel_archive::metadata() {
     io(d.forced_deck_top.codes);
     io(d.forced_deck_top.placed);
     io(d.forced_deck_top.read);
+    io(d.forced_deck_top.drawn);
     io(d.forced_deck_top.missing);
+    io(d.forced_deck_top.drawing);
     io(d.has_ended);
     io(d.last_status);
 }

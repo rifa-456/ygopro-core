@@ -5,6 +5,7 @@
 #include "../card.h"
 
 #include <algorithm>
+#include <iterator>
 #include <new>
 
 namespace {
@@ -28,7 +29,8 @@ void duel_forced_deck_top::prepare(field &owner, uint8_t player, uint32_t count,
     // The codes are given in order from the top: the code at each place in the queue goes to the card at that depth,
     // counting only the cards a code went to, so a card put on top after the deck settled takes the code it has.
     std::size_t entry = 0;
-    for (std::size_t depth = 0; depth < count && depth < deck.size() && entry < queued.size(); ++depth) {
+    std::size_t depth = 0;
+    for (; depth < count && depth < deck.size() && entry < queued.size(); ++depth) {
         const auto top = deck.size() - 1 - depth;
         auto *here = deck[top];
         if (on[entry] == here->fieldid) {
@@ -58,9 +60,7 @@ void duel_forced_deck_top::prepare(field &owner, uint8_t player, uint32_t count,
                 break;
             // The card already here is read in its stead, and the code is dropped.
             ++missing[player];
-            queued.erase(queued.begin() + static_cast<std::ptrdiff_t>(entry));
-            seen.erase(seen.begin() + static_cast<std::ptrdiff_t>(entry));
-            on.erase(on.begin() + static_cast<std::ptrdiff_t>(entry));
+            erase(player, entry);
             continue;
         }
         if (found != top) {
@@ -77,8 +77,36 @@ void duel_forced_deck_top::prepare(field &owner, uint8_t player, uint32_t count,
         seen[entry] = reading ? 1 : 0;
         ++entry;
     }
+    // A read past the queued codes draws each further card from those at and below its place; one a code the deck does
+    // not hold stopped draws nothing past that code.
+    const bool past = entry >= queued.size();
+    for (; past && reading && drawing && depth < count && depth < deck.size(); ++depth) {
+        const auto top = deck.size() - 1 - depth;
+        card_set below;
+        for (std::size_t index = 0; index <= top; ++index)
+            below.insert(deck[index]);
+        auto *picked = *std::next(below.begin(), owner.pduel->random_results.pick(*owner.pduel, below, {}));
+        const auto found = std::find(deck.begin(), deck.end(), picked) - deck.begin();
+        if (static_cast<std::size_t>(found) != top) {
+            std::swap(deck[static_cast<std::size_t>(found)], deck[top]);
+            moved = true;
+        }
+        queued.push_back(picked->data.code);
+        on.push_back(picked->fieldid);
+        seen.push_back(1);
+        drawn[player].push_back(1);
+        ++entry;
+    }
     if (moved)
         owner.reset_sequence(player, LOCATION_DECK);
+}
+
+void duel_forced_deck_top::erase(uint8_t player, std::size_t entry) noexcept {
+    const auto at = static_cast<std::ptrdiff_t>(entry);
+    codes[player].erase(codes[player].begin() + at);
+    placed[player].erase(placed[player].begin() + at);
+    read[player].erase(read[player].begin() + at);
+    drawn[player].erase(drawn[player].begin() + at);
 }
 
 void duel_forced_deck_top::leave(uint8_t player, uint32_t fieldid) noexcept {
@@ -88,15 +116,12 @@ void duel_forced_deck_top::leave(uint8_t player, uint32_t fieldid) noexcept {
     const auto entry = std::find(on.begin(), on.end(), fieldid);
     if (entry == on.end())
         return;
-    const auto index = entry - on.begin();
-    auto &seen = read[player];
-    if (!seen[static_cast<std::size_t>(index)]) {
+    const auto index = static_cast<std::size_t>(entry - on.begin());
+    if (!read[player][index]) {
         *entry = not_placed;
         return;
     }
-    codes[player].erase(codes[player].begin() + index);
-    seen.erase(seen.begin() + index);
-    on.erase(entry);
+    erase(player, index);
 }
 
 void duel_forced_deck_top::moved(uint8_t player, uint32_t fieldid, bool to_top) noexcept {
@@ -106,15 +131,23 @@ void duel_forced_deck_top::moved(uint8_t player, uint32_t fieldid, bool to_top) 
     const auto entry = std::find(on.begin(), on.end(), fieldid);
     if (entry == on.end())
         return;
-    read[player][static_cast<std::size_t>(entry - on.begin())] = 0;
+    const auto index = static_cast<std::size_t>(entry - on.begin());
+    if (drawn[player][index]) {
+        erase(player, index);
+        return;
+    }
+    read[player][index] = 0;
     *entry = not_placed;
 }
 
 void duel_forced_deck_top::release(uint8_t player) noexcept {
-    if (player < 2) {
-        std::fill(placed[player].begin(), placed[player].end(), not_placed);
-        std::fill(read[player].begin(), read[player].end(), 0);
-    }
+    if (player > 1)
+        return;
+    for (auto entry = drawn[player].size(); entry-- > 0;)
+        if (drawn[player][entry])
+            erase(player, entry);
+    std::fill(placed[player].begin(), placed[player].end(), not_placed);
+    std::fill(read[player].begin(), read[player].end(), 0);
 }
 
 void duel_forced_deck_top::settle(field &owner) {
@@ -130,12 +163,21 @@ int OCG_DuelForceDeckTop(OCG_Duel ocg_duel, uint8_t player, const uint32_t *code
         top.codes[player].reserve(top.codes[player].size() + count);
         top.placed[player].reserve(top.placed[player].size() + count);
         top.read[player].reserve(top.read[player].size() + count);
+        top.drawn[player].reserve(top.drawn[player].size() + count);
     } catch (const std::bad_alloc &) {
         return OCG_RANDOM_ALLOCATION_FAILED;
     }
     top.codes[player].insert(top.codes[player].end(), codes, codes + count);
     top.placed[player].resize(top.codes[player].size(), duel_forced_deck_top::not_placed);
     top.read[player].resize(top.codes[player].size(), 0);
+    top.drawn[player].resize(top.codes[player].size(), 0);
+    return OCG_RANDOM_SUCCESS;
+}
+
+int OCG_DuelDrawDeckTops(OCG_Duel ocg_duel, int enabled) {
+    if (!ocg_duel)
+        return OCG_RANDOM_INVALID_ARGUMENT;
+    static_cast<duel *>(ocg_duel)->forced_deck_top.drawing = enabled != 0;
     return OCG_RANDOM_SUCCESS;
 }
 
