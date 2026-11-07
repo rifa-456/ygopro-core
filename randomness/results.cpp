@@ -60,6 +60,32 @@ bool duel_random_results::named(const card_set &from, uint32_t place) const {
     return false;
 }
 
+bool duel_random_results::keeps(const card_set &from, uint32_t place) {
+    const auto count = std::min(cards.size(), places.size());
+    bool any = false;
+    for (std::size_t index = 0; index < count && !any; ++index)
+        any = places[index] == place && cards[index] == 0;
+    if (!any)
+        return false;
+    for (std::size_t index = 0; index < cards.size() && index < places.size();) {
+        if (places[index] != place) {
+            ++index;
+            continue;
+        }
+        const auto code = cards[index];
+        bool held = false;
+        for (auto *pcard : from)
+            held = held || (code != 0 && (pcard->data.code == code || (pcard->data.alias && pcard->data.alias == code)));
+        if (held)
+            return false;
+        cards.erase(cards.begin() + static_cast<std::ptrdiff_t>(index));
+        places.erase(places.begin() + static_cast<std::ptrdiff_t>(index));
+        if (code == 0)
+            return true;
+    }
+    return false;
+}
+
 int32_t duel_random_results::pick(duel &owner, const card_set &from, const card_set &taken, bool placed) {
     const auto high = static_cast<int32_t>(from.size()) - 1;
     // A chance result forced by number is a replay's, which picks as the run it replays did.

@@ -66,6 +66,11 @@ class duel_random_results {
     /** Whether a queued card has exactly this place, its controller times 0x10000 plus its location, and from holds a
         card of its code there. */
     bool named(const card_set &from, uint32_t place) const;
+    /** Whether a read of a deck's top at place keeps the card already there because the host queued code 0 for it.
+        Only when some card queued for place is 0 are the cards queued for it read in order, as each position of the
+        deck from its top: the first one still held by from is the read's, a code from no longer holds is dropped, and
+        a 0 is taken up and keeps the card. Without a 0 nothing changes. */
+    bool keeps(const card_set &from, uint32_t place);
 
     /** The results the next draws take, first to last. */
     std::deque<int32_t> forced;

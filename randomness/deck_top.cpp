@@ -96,7 +96,7 @@ void duel_forced_deck_top::prepare(field &owner, uint8_t player, uint32_t count,
         auto &results = owner.pduel->random_results;
         const auto place = (static_cast<uint32_t>(player) << 16) | LOCATION_DECK;
         int32_t chosen = 0;
-        if (results.chances.empty() && results.named(below, place)) {
+        if (results.chances.empty() && !results.keeps(below, place) && results.named(below, place)) {
             chosen = results.pick(*owner.pduel, below, {}, true);
         } else {
             const auto here = static_cast<int32_t>(std::distance(below.begin(), below.find(deck[top])));

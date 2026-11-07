@@ -337,6 +337,31 @@ void checked(Host &host) {
     require(top(*source, 0) == named, "the read after a check did not take the named card");
 }
 
+// A 0 queued from a deck stands for a position whose card the host does not know: the reads take the cards queued
+// from that deck in order, one per position from its top, the 0 keeping the card already there.
+void kept_by_position(Host &host) {
+    auto source = setup(host, not_in_deck);
+    const auto deck = deck_codes(*source, 0);
+    OCG_DuelDrawDeckTops(source.get(), 1);
+    OCG_DuelRecordRandomResults(source.get());
+    const auto there = top(*source, 0);
+    std::vector<uint32_t> others;
+    for (const auto code : deck)
+        if (code != there && std::find(others.begin(), others.end(), code) == others.end())
+            others.push_back(code);
+    require(others.size() >= 2, "the deck has too few different cards");
+    const std::array<uint32_t, 3> named{0, others[0], others[1]};
+    const std::array<uint32_t, 3> places{LOCATION_DECK, LOCATION_DECK, LOCATION_DECK};
+    require(OCG_DuelForceRandomCardsFrom(source.get(), named.data(), places.data(), 3) == OCG_RANDOM_SUCCESS,
+            "cards not forced");
+    read_top(*source, 0, 3);
+    require(top(*source, 0) == there && top(*source, 0, 1) == others[0] && top(*source, 0, 2) == others[1],
+            "the reads did not take the queued cards by position");
+    const auto &recorded = source->random_results.recorded;
+    require(recorded.size() == 3 && recorded[0].kind == OCG_DRAW_KEPT && recorded[1].kind == OCG_DRAW_CARD,
+            "the kept position not recorded as kept");
+}
+
 // A run's draws replayed as chance results draw the same cards; without drawing set, a read draws nothing.
 void replayed(Host &host) {
     auto source = setup(host, not_in_deck);
@@ -381,6 +406,7 @@ int main(int argc, char **argv) {
         drawn(host);
         drawn_from(host);
         kept(host);
+        kept_by_position(host);
         checked(host);
         replayed(host);
         require(host.errors.empty(), "script errors");

@@ -76,7 +76,10 @@ OCGAPI int OCG_DuelForceDieResults(OCG_Duel duel, const int32_t* results, uint32
    OCG_StartDuel. */
 OCGAPI int OCG_DuelForceRandomCards(OCG_Duel duel, const uint32_t* codes, uint32_t count);
 /* As OCG_DuelForceRandomCards, with where each card is to be taken from: its controller times 0x10000 plus its
-   location, or 0 for anywhere, so a card a host's log shows leaving a deck is taken only from that deck. */
+   location, or 0 for anywhere, so a card a host's log shows leaving a deck is taken only from that deck. Code 0 with a
+   deck's place stands for a read of that deck's top past its queued codes that keeps the card already there; once
+   one does, the cards queued for that deck are read in order, one per position from the top, and a code the deck no
+   longer holds is dropped. */
 OCGAPI int OCG_DuelForceRandomCardsFrom(OCG_Duel duel, const uint32_t* codes, const uint32_t* places, uint32_t count);
 /* Record every draw from now on, forced or not: its range, its result, whether it was a chance draw and what it was
    for. Allowed before OCG_StartDuel. */
