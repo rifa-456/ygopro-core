@@ -61,8 +61,10 @@ class duel_random_results {
     int32_t next_or(duel &owner, int32_t low, int32_t high, int32_t otherwise);
     /** The place among from of the card a random pick takes, the cards in taken excepted: the first queued card from
         holds where its place says, recorded as a forced draw, or else a draw like any other. A chance result forced
-        ahead goes first. With placed set, a queued card whose place says anywhere is passed over. */
-    int32_t pick(duel &owner, const card_set &from, const card_set &taken, bool placed = false);
+        ahead goes first. With placed set, a queued card whose place says anywhere is passed over. A queued card taken
+        is recorded as a draw of kind. */
+    int32_t pick(duel &owner, const card_set &from, const card_set &taken, bool placed = false,
+                 uint32_t kind = OCG_DRAW_CARD);
     /** Whether a queued card has exactly this place, its controller times 0x10000 plus its location, and from holds a
         card of its code there. */
     bool named(const card_set &from, uint32_t place) const;

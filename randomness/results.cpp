@@ -86,7 +86,7 @@ bool duel_random_results::keeps(const card_set &from, uint32_t place) {
     return false;
 }
 
-int32_t duel_random_results::pick(duel &owner, const card_set &from, const card_set &taken, bool placed) {
+int32_t duel_random_results::pick(duel &owner, const card_set &from, const card_set &taken, bool placed, uint32_t kind) {
     const auto high = static_cast<int32_t>(from.size()) - 1;
     // A chance result forced by number is a replay's, which picks as the run it replays did.
     if (chances.empty() && shuffles_ == 0) {
@@ -105,7 +105,7 @@ int32_t duel_random_results::pick(duel &owner, const card_set &from, const card_
                         places.erase(places.begin() + static_cast<std::ptrdiff_t>(index));
                     cards.erase(queued);
                     if (recording)
-                        recorded.push_back({0, high, place, 1, 1, OCG_DRAW_CARD});
+                        recorded.push_back({0, high, place, 1, 1, kind});
                     return place;
                 }
                 ++place;

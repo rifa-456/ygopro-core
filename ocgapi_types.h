@@ -141,7 +141,11 @@ typedef enum {
     OCG_DRAW_CARD=3,
     /* A card a read of a deck's top found where it was, the deck's order unseen and so not drawn at random: a chance
        result a replay forces like any other, which costs nothing and has no other result worth trying. */
-    OCG_DRAW_KEPT=4
+    OCG_DRAW_KEPT=4,
+    /* A card a read of a deck's top took because the host named it, moved there from below as the deck's unseen order
+       could have put it: a chance result a replay forces like any other, which costs nothing, as a kept one does, but
+       whose other results are worth trying, as the host's name may be wrong. */
+    OCG_DRAW_NAMED=5
 } OCG_DrawKind;
 typedef struct OCG_RandomResult {
     int32_t low;

@@ -249,10 +249,10 @@ void carried(Host &host) {
     }
 }
 
-// The card draws a duel recorded, as OCG_DRAW_CARD picks.
+// The cards a duel drew from its decks because they were named, as OCG_DRAW_NAMED draws.
 std::size_t card_draws(duel &d) {
     return static_cast<std::size_t>(std::count_if(d.random_results.recorded.begin(), d.random_results.recorded.end(),
-                                                  [](const OCG_RandomResult &draw) { return draw.kind == OCG_DRAW_CARD; }));
+                                                  [](const OCG_RandomResult &draw) { return draw.kind == OCG_DRAW_NAMED; }));
 }
 
 // With drawing set, a read past the queued codes draws each further card: a card a host names from the deck comes up as
@@ -358,7 +358,7 @@ void kept_by_position(Host &host) {
     require(top(*source, 0) == there && top(*source, 0, 1) == others[0] && top(*source, 0, 2) == others[1],
             "the reads did not take the queued cards by position");
     const auto &recorded = source->random_results.recorded;
-    require(recorded.size() == 3 && recorded[0].kind == OCG_DRAW_KEPT && recorded[1].kind == OCG_DRAW_CARD,
+    require(recorded.size() == 3 && recorded[0].kind == OCG_DRAW_KEPT && recorded[1].kind == OCG_DRAW_NAMED,
             "the kept position not recorded as kept");
 }
 

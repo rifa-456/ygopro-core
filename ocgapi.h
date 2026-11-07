@@ -95,8 +95,8 @@ OCGAPI int OCG_DuelGetRandomResults(OCG_Duel duel, OCG_RandomResult* output, uin
    drops it and takes the card already there. Allowed before OCG_StartDuel, so the opening hands are drawn this way. */
 OCGAPI int OCG_DuelForceDeckTop(OCG_Duel duel, uint8_t player, const uint32_t* codes, uint32_t count);
 /* With enabled nonzero, make each read of a deck's top that reaches past the queued codes draw each further card as a
-   random pick from the cards at and below its place, recorded and forced like any other random pick (an OCG_DRAW_CARD
-   draw): a host that rebuilds a logged duel forces the cards the log shows, or the results a run drew. A drawn card
+   random pick from the cards at and below its place, recorded and forced like any other random pick (an OCG_DRAW_NAMED
+   draw for a card the host names, an OCG_DRAW_KEPT one for any other): a host that rebuilds a logged duel forces the cards the log shows, or the results a run drew. A drawn card
    keeps its place until it leaves, the deck is shuffled, or it moves away from the top. Off by default, so a duel's
    draws are its shuffles' alone. */
 OCGAPI int OCG_DuelDrawDeckTops(OCG_Duel duel, int enabled);

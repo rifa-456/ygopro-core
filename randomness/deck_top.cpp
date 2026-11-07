@@ -97,7 +97,7 @@ void duel_forced_deck_top::prepare(field &owner, uint8_t player, uint32_t count,
         const auto place = (static_cast<uint32_t>(player) << 16) | LOCATION_DECK;
         int32_t chosen = 0;
         if (results.chances.empty() && !results.keeps(below, place) && results.named(below, place)) {
-            chosen = results.pick(*owner.pduel, below, {}, true);
+            chosen = results.pick(*owner.pduel, below, {}, true, OCG_DRAW_NAMED);
         } else {
             const auto here = static_cast<int32_t>(std::distance(below.begin(), below.find(deck[top])));
             const duel_random_results::drawing kept(results, OCG_DRAW_KEPT);
