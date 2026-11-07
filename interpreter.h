@@ -98,6 +98,9 @@ public:
 	bool call_card_function(card* pcard, const char* f, uint32_t param_count, int32_t ret_count, bool forced = true);
 	bool call_code_function(uint32_t code, const char* f, uint32_t param_count, int32_t ret_count);
 	bool check_condition(int32_t f, uint32_t param_count);
+	/* How many script checks are running: whether an effect could be activated or a condition holds. A check is
+	   hypothetical and reads no hidden card, so a read of a deck's top inside one draws nothing. */
+	uint32_t checking = 0;
 	bool check_matching(card* pcard, int32_t findex, int32_t extraargs);
 	bool check_matching_table(card* pcard, int32_t findex, int32_t table_index);
 	lua_Integer get_operation_value(card* pcard, int32_t findex, int32_t extraargs);

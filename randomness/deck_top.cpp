@@ -3,6 +3,7 @@
 #include "../duel.h"
 #include "../field.h"
 #include "../card.h"
+#include "../interpreter.h"
 
 #include <algorithm>
 #include <iterator>
@@ -21,6 +22,11 @@ bool holds_code(const std::vector<uint32_t> &placed, const card *pcard) {
 void duel_forced_deck_top::prepare(field &owner, uint8_t player, uint32_t count, bool taking, bool reading) {
     if (player > 1)
         return;
+    // A script's check of whether an effect could be activated or a condition holds is hypothetical: it sees the cards
+    // where they are, and draws, records and fixes none, so the read the effect makes when it runs takes the cards the
+    // host names.
+    if (owner.pduel->lua->checking > 0)
+        reading = false;
     auto &deck = owner.player[player].list_main;
     auto &queued = codes[player];
     auto &on = placed[player];

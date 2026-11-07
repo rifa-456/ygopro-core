@@ -33,7 +33,8 @@ class duel_forced_deck_top {
         code holds, which that code then gives up. Code 0 takes the card already there. A code the deck does not hold
         stops a look and stays queued; when taking is set, the read takes the cards, so the code is counted as missing
         and dropped, and the card already there is read in its stead. With reading unset, as when the deck settles, the
-        cards are placed but no read reaches them. */
+        cards are placed but no read reaches them, as inside a script's check of whether an effect could be activated
+        or a condition holds, which is hypothetical. */
     void prepare(field &owner, uint8_t player, uint32_t count, bool taking, bool reading = true);
     /** The card with fieldid left player's deck. Its code is used up if a read of the top reached it; a card taken from
         anywhere else in the deck, as a search takes one, only frees its code for another copy, since the deck still

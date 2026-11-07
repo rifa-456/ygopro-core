@@ -443,6 +443,13 @@ bool interpreter::check_condition(int32_t function, uint32_t param_count) {
 		params.clear();
 		return true;
 	}
+	struct counted {
+		uint32_t& count;
+		explicit counted(uint32_t& running) : count(running) { ++count; }
+		~counted() { --count; }
+		counted(const counted&) = delete;
+		counted& operator=(const counted&) = delete;
+	} during(checking);
 	if(!call_function(function, param_count, 1))
 		return false;
 	bool result = lua_toboolean(current_state, -1);

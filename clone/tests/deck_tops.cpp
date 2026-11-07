@@ -3,6 +3,10 @@
 #include "clone/persistence/api.h"
 #include "support/duel_fixture.h"
 
+#include "interpreter.h"
+#include "lua.h"
+#include "lauxlib.h"
+
 #include <algorithm>
 #include <array>
 #include <string>
@@ -305,6 +309,34 @@ void kept(Host &host) {
             "the card kept not recorded");
 }
 
+// A script's check of whether an effect could be activated reads no card: a look at the deck's top inside one draws,
+// records and fixes nothing, so the read the effect makes when it runs takes the card the host names.
+void checked(Host &host) {
+    auto source = setup(host, not_in_deck);
+    const auto deck = deck_codes(*source, 0);
+    OCG_DuelDrawDeckTops(source.get(), 1);
+    OCG_DuelRecordRandomResults(source.get());
+    const auto there = top(*source, 0);
+    const auto named = *std::find_if(deck.begin(), deck.end(), [&](uint32_t code) { return code != there; });
+    const std::array<uint32_t, 1> codes{named};
+    const std::array<uint32_t, 1> places{LOCATION_DECK};
+    require(OCG_DuelForceRandomCardsFrom(source.get(), codes.data(), places.data(), 1) == OCG_RANDOM_SUCCESS,
+            "cards not forced");
+    const std::string chunk = "deck_top_check = function() return #Duel.GetDecktopGroup(0, 3) == 3 end";
+    require(OCG_LoadScript(source.get(), chunk.data(), static_cast<uint32_t>(chunk.size()), "check") != 0,
+            "check not loaded");
+    source->last_status = OCG_DUEL_STATUS_AWAITING;
+    auto *state = source->lua->lua_state;
+    lua_getglobal(state, "deck_top_check");
+    const auto check = luaL_ref(state, LUA_REGISTRYINDEX);
+    require(source->lua->check_condition(check, 0), "the check failed");
+    luaL_unref(state, LUA_REGISTRYINDEX, check);
+    require(top(*source, 0) == there && source->random_results.recorded.empty() && status(*source, {0, 0, 0, 0}),
+            "a check drew a card");
+    read_top(*source, 0, 1);
+    require(top(*source, 0) == named, "the read after a check did not take the named card");
+}
+
 // A run's draws replayed as chance results draw the same cards; without drawing set, a read draws nothing.
 void replayed(Host &host) {
     auto source = setup(host, not_in_deck);
@@ -349,6 +381,7 @@ int main(int argc, char **argv) {
         drawn(host);
         drawn_from(host);
         kept(host);
+        checked(host);
         replayed(host);
         require(host.errors.empty(), "script errors");
     } catch (const std::exception &error) {
