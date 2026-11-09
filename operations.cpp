@@ -3659,6 +3659,7 @@ bool field::process(Processors::SpSummon& arg) {
 	switch(arg.step) {
 	case 0: {
 		card_vector cvs, cvo;
+		core.group_summoning.insert(targets->container.begin(), targets->container.end());
 		for(auto& pcard : targets->container) {
 			if(pcard->summon.player == infos.turn_player)
 				cvs.push_back(pcard);
@@ -3688,6 +3689,7 @@ bool field::process(Processors::SpSummon& arg) {
 	}
 	case 2: {
 		core.ss_tograve_set.clear();
+		core.group_summoning.clear();
 		if(targets->container.size() == 0) {
 			returns.set<int32_t>(0, 0);
 			core.operated_set.clear();

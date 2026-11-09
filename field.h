@@ -262,6 +262,8 @@ struct processor {
 	instant_f_list quick_f_chain;
 	card_set leave_confirmed;
 	card_set special_summoning;
+	// Fork: the cards a group special summon is still placing, one decision each, in an order of the engine's own.
+	card_set group_summoning;
 	card_set ss_tograve_set;
 	card_set equiping_cards;
 	card_set control_adjust_set[2];
