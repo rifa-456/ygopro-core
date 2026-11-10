@@ -34,6 +34,10 @@ int OCG_CreateCheckpoint(OCG_Checkpoint *output, OCG_Duel raw) {
     if (!owner.lua->clone_safe)
         return OCG_CHECKPOINT_UNSUPPORTED;
     try {
+        // Lua frees a group only when its collector runs, and the collector paces itself by Lua's own memory, of which
+        // a group is a few bytes: unreachable groups pile up by the hundred, and every checkpoint would copy them and
+        // every restore rebuild them. Nothing runs in Lua while a duel awaits a decision, so they are collected here.
+        owner.lua->collect(true);
         *output = new duel_checkpoint(owner);
         return OCG_CHECKPOINT_SUCCESS;
     } catch (const std::bad_alloc &) {
