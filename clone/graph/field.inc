@@ -52,6 +52,7 @@ void copy(processor& d, const processor& s) {
     copy(d.quick_f_chain, s.quick_f_chain);
     copy(d.leave_confirmed, s.leave_confirmed);
     copy(d.special_summoning, s.special_summoning);
+    copy(d.group_summoning, s.group_summoning);
     copy(d.ss_tograve_set, s.ss_tograve_set);
     copy(d.equiping_cards, s.equiping_cards);
     copy(d.control_adjust_set, s.control_adjust_set);
