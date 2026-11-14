@@ -1,0 +1,28 @@
+name: Sync with upstream
+
+# Opens a pull request that merges edo9300's master into this fork, so its CI runs on the merge and a
+# conflict shows in the pull request. A conflict on lua/src means upstream moved its Lua pin: merge that
+# Lua revision into rifa-456/ygo-lua by hand and point lua/src at the result.
+on:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+
+jobs:
+  pull-request:
+    if: github.repository == 'rifa-456/ygopro-core'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Open a pull request from upstream unless one is open or nothing is new
+        run: |
+          behind=$(gh api "repos/${{ github.repository }}/compare/master...edo9300:ygopro-core:master" --jq .ahead_by)
+          open=$(gh pr list --repo "${{ github.repository }}" --head master --state open --json number --jq length)
+          if [ "$behind" -gt 0 ] && [ "$open" -eq 0 ]; then
+            gh pr create --repo "${{ github.repository }}" --base master --head edo9300:master \
+              --title "Merge upstream edo9300/ygopro-core" --body "$behind new upstream commits."
+          fi
