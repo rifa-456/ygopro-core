@@ -9,6 +9,7 @@
 #include <iterator> //std::next
 #include <set>
 #include <utility> //std::make_pair, std::exchange, std::move, std::swap
+#include "damage_step_timings.h"
 #include "duel.h"
 #include "effect.h"
 #include "card.h"
@@ -2384,7 +2385,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		message->write<uint8_t>(1);
 		message->write<uint64_t>(42);
 		core.hint_timing[infos.turn_player] = TIMING_DAMAGE_CAL;
-		emplace_process<Processors::PointEvent>(false, false, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
+		emplace_process<Processors::PointEvent>(false, false, damage_step_timings::hold_one_chain_from_calculation(core.duel_options));
 		return FALSE;
 	}
 	case 25: {
@@ -2582,7 +2583,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		}
 		core.selfdes_disabled = false;
 		adjust_all();
-		if(is_flag(DUEL_6_STEP_BATLLE_STEP)) {
+		if(damage_step_timings::has_one_after_calculation(core.duel_options)) {
 			//EVENT_BATTLE_END was here, but this timing does not exist in Master Rule 3+
 			if(!core.effect_damage_step) {
 				auto message = pduel->new_message(MSG_HINT);
@@ -2594,7 +2595,7 @@ bool field::process(Processors::BattleCommand& arg) {
 				message->write<uint8_t>(1);
 				message->write<uint64_t>(45);
 				core.hint_timing[infos.turn_player] = TIMING_DAMAGE_CAL;
-				emplace_process<Processors::PointEvent>(false, false, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
+				emplace_process<Processors::PointEvent>(false, false, damage_step_timings::hold_one_chain_from_calculation(core.duel_options));
 			} else {
 				break_effect();
 			}
@@ -2636,7 +2637,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		message->write<uint64_t>(43);
 		core.hint_timing[0] |= TIMING_BATTLED;
 		core.hint_timing[1] |= TIMING_BATTLED;
-		emplace_process<Processors::PointEvent>(false, false, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
+		emplace_process<Processors::PointEvent>(false, false, damage_step_timings::hold_one_chain_from_calculation(core.duel_options));
 		return FALSE;
 	}
 	case 33: {
